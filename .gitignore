@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+
+# Environment variables
+.env
+
+# Build output
+dist/
+
+# Uploaded files
+uploads/*
+!uploads/.gitkeep
+
+# OS artifacts
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
