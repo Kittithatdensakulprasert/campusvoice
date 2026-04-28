@@ -13,8 +13,24 @@ const STATUS_LABELS = {
   closed: 'Closed'
 };
 
+const SEARCH_LIMIT = 50;
+
 function getStatusCount(items, status) {
   return items.find((item) => item.status === status)?.count || 0;
+}
+
+function getStatsErrorMessage(error) {
+  const status = error.response?.status;
+
+  if (status === 401) {
+    return 'Please log in as admin or staff to view dashboard stats.';
+  }
+
+  if (status === 403) {
+    return 'Only admin or staff can view dashboard stats.';
+  }
+
+  return 'Unable to load dashboard stats.';
 }
 
 export default function DashboardPage() {
@@ -39,7 +55,7 @@ export default function DashboardPage() {
         }
       } catch (requestError) {
         if (active) {
-          setError('Unable to load dashboard stats.');
+          setError(getStatsErrorMessage(requestError));
         }
       } finally {
         if (active) {
@@ -61,7 +77,7 @@ export default function DashboardPage() {
       try {
         setLoadingSearch(true);
         const response = await api.get('/issues/search', {
-          params: { q: query, category, status },
+          params: { q: query, category, status, limit: SEARCH_LIMIT, offset: 0 },
           signal: controller.signal
         });
         if (active) {

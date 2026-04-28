@@ -16,6 +16,8 @@ router.get('/search', async (req, res) => {
     const keyword = (req.query.q || '').trim();
     const category = (req.query.category || '').trim();
     const status = (req.query.status || '').trim();
+    const limit = Math.min(Math.max(Number(req.query.limit) || 50, 1), 100);
+    const offset = Math.max(Number(req.query.offset) || 0, 0);
 
     const where = [];
     const params = [];
@@ -61,12 +63,12 @@ router.get('/search', async (req, res) => {
         ) vc ON vc.issue_id = i.id
         ${whereSql}
         ORDER BY i.created_at DESC
-        LIMIT 50
+        LIMIT ? OFFSET ?
       `,
-      params
+      [...params, limit, offset]
     );
 
-    res.json({ issues });
+    res.json({ issues, limit, offset });
   } catch (error) {
     console.error('Search issues error:', error);
     res.status(500).json({ error: 'Failed to search issues' });
