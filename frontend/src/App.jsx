@@ -1,5 +1,6 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
+import AdminPage from './components/admin/AdminPage';
 
 // Route placeholders — each feature team will replace these with real components
 // import LoginPage from './components/auth/LoginPage';
@@ -41,7 +42,7 @@ function App() {
         />
         <Route
           path="/admin"
-          element={<div style={{ padding: '2rem' }}>Admin Panel — Feature 6 (mark)</div>}
+          element={<AdminPage />}
         />
         <Route
           path="*"
