@@ -1,5 +1,6 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
+import DashboardPage from './components/admin/DashboardPage';
 
 // Route placeholders — each feature team will replace these with real components
 // import LoginPage from './components/auth/LoginPage';
@@ -7,7 +8,6 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 // import IssueListPage from './components/issues/IssueListPage';
 // import IssueDetailPage from './components/issues/IssueDetailPage';
 // import ReportIssuePage from './components/issues/ReportIssuePage';
-// import DashboardPage from './components/admin/DashboardPage';
 // import AdminPage from './components/admin/AdminPage';
 
 function App() {
@@ -35,10 +35,7 @@ function App() {
           path="/register"
           element={<div style={{ padding: '2rem' }}>Register — Feature 1 (มิว)</div>}
         />
-        <Route
-          path="/dashboard"
-          element={<div style={{ padding: '2rem' }}>Dashboard — Feature 5 (ไผ่)</div>}
-        />
+        <Route path="/dashboard" element={<DashboardPage />} />
         <Route
           path="/admin"
           element={<div style={{ padding: '2rem' }}>Admin Panel — Feature 6 (mark)</div>}
