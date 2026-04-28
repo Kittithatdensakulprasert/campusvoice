@@ -1,5 +1,6 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
+import { LoginPage, RegisterPage } from './components/auth';
 
 // Route placeholders — each feature team will replace these with real components
 // import LoginPage from './components/auth/LoginPage';
@@ -29,11 +30,11 @@ function App() {
         />
         <Route
           path="/login"
-          element={<div style={{ padding: '2rem' }}>Login — Feature 1 (มิว)</div>}
+          element={<LoginPage />}
         />
         <Route
           path="/register"
-          element={<div style={{ padding: '2rem' }}>Register — Feature 1 (มิว)</div>}
+          element={<RegisterPage />}
         />
         <Route
           path="/dashboard"
