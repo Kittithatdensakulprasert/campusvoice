@@ -7,12 +7,12 @@ import DashboardPage from './components/admin/DashboardPage';
 // import RegisterPage from './components/auth/RegisterPage';
 // import IssueListPage from './components/issues/IssueListPage';
 // import IssueDetailPage from './components/issues/IssueDetailPage';
-// import ReportIssuePage from './components/issues/ReportIssuePage';
+import ReportIssuePage from './components/issues/ReportIssuePage';
 // import AdminPage from './components/admin/AdminPage';
 
 function App() {
   return (
-    <div className="app">
+    <div className="app"> 
       <Routes>
         <Route path="/" element={<Navigate to="/issues" replace />} />
         <Route
@@ -23,10 +23,7 @@ function App() {
           path="/issues/:id"
           element={<div style={{ padding: '2rem' }}>Issue Detail — Feature 3 &amp; 4</div>}
         />
-        <Route
-          path="/report"
-          element={<div style={{ padding: '2rem' }}>Report Issue — Feature 2 (แฮม)</div>}
-        />
+        <Route path="/report" element={<ReportIssuePage />} />
         <Route
           path="/login"
           element={<div style={{ padding: '2rem' }}>Login — Feature 1 (มิว)</div>}

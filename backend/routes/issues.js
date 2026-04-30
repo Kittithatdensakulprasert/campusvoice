@@ -1,8 +1,32 @@
 const express = require('express');
 const router = express.Router();
+const path = require('path');
+const multer = require('multer');
 const pool = require('../db');
-// const verifyToken = require('../middleware/verifyToken');
-// const multer = require('multer');
+const verifyToken = require('../middleware/verifyToken');
+
+const VALID_CATEGORIES = ['ห้องเรียน', 'ห้องน้ำ', 'อาหาร', 'Wi-Fi', 'ความปลอดภัย', 'อื่นๆ'];
+
+const storage = multer.diskStorage({
+  destination: path.join(__dirname, '..', 'uploads'),
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    cb(null, `${Date.now()}-${Math.round(Math.random() * 1e6)}${ext}`);
+  },
+});
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const allowed = ['image/jpeg', 'image/png', 'image/webp'];
+    if (allowed.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('อัพโหลดได้เฉพาะไฟล์รูปภาพ (JPEG, PNG, WEBP)'));
+    }
+  },
+});
 
 // GET /api/issues — list all issues (with filter/sort query params)
 router.get('/', async (req, res) => {
@@ -82,9 +106,50 @@ router.get('/:id', async (req, res) => {
 });
 
 // POST /api/issues — create issue (auth required, image upload)
-router.post('/', async (req, res) => {
-  // TODO: Feature 2 — verifyToken + multer upload
-  res.status(501).json({ message: 'Create issue — not yet implemented' });
+router.post('/', verifyToken, (req, res, next) => {
+  upload.single('image')(req, res, (err) => {
+    if (err instanceof multer.MulterError && err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({ error: 'ไฟล์รูปภาพต้องมีขนาดไม่เกิน 5MB' });
+    }
+    if (err) {
+      return res.status(400).json({ error: err.message });
+    }
+    next();
+  });
+}, async (req, res) => {
+  const { title, description, category, location } = req.body;
+
+  if (!title || !title.trim()) {
+    return res.status(400).json({ error: 'กรุณากรอกหัวข้อปัญหา' });
+  }
+  if (title.trim().length > 255) {
+    return res.status(400).json({ error: 'หัวข้อปัญหาต้องไม่เกิน 255 ตัวอักษร' });
+  }
+  if (!description || !description.trim()) {
+    return res.status(400).json({ error: 'กรุณากรอกรายละเอียดปัญหา' });
+  }
+  if (category && !VALID_CATEGORIES.includes(category)) {
+    return res.status(400).json({ error: 'หมวดหมู่ไม่ถูกต้อง' });
+  }
+
+  const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
+
+  try {
+    const [result] = await pool.query(
+      'INSERT INTO issues (user_id, title, description, category, location, image_url) VALUES (?, ?, ?, ?, ?, ?)',
+      [req.user.id, title.trim(), description.trim(), category || null, location?.trim() || null, imageUrl]
+    );
+
+    res.status(201).json({
+      id: result.insertId,
+      title: title.trim(),
+      status: 'open',
+      image_url: imageUrl,
+    });
+  } catch (error) {
+    console.error('Create issue error:', error);
+    res.status(500).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });
+  }
 });
 
 // PATCH /api/issues/:id/status — update issue status (staff/admin only)
