@@ -29,7 +29,7 @@ export default function IssueTable({ issues, updatingId, onChangeStatus }) {
               <td style={td}>{issue.vote_count ?? issue.votes ?? 0}</td>
               <td style={td}>
                 <StatusDropdown
-                  value={issue.status || 'pending'}
+                  value={issue.status || 'open'}
                   disabled={updatingId === issue.id}
                   onChange={(nextStatus) => onChangeStatus(issue.id, nextStatus)}
                 />

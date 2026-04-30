@@ -24,7 +24,7 @@ router.get('/', async (req, res) => {
       GROUP BY i.id
       ORDER BY vote_count DESC, i.created_at DESC`
     );
-    return res.json({ issues: rows });
+    return res.json(rows);
   } catch (err) {
     return res.status(500).json({ message: "Server error" });
   }
@@ -55,33 +55,22 @@ verifyToken,
     try {
       const { id } = req.params;
       const { status } = req.body;
-      const allowed = ["pending", "in_progress", "done", "open", "resolved", "closed"];
+      const allowed = ["open", "in_progress", "resolved", "closed"];
 
       if (!allowed.includes(status)) {
         return res.status(400).json({ message: "Invalid status" });
       }
 
-      const normalizedStatusMap = {
-        pending: "open",
-        in_progress: "in_progress",
-        done: "resolved",
-        open: "open",
-        resolved: "resolved",
-        closed: "closed"
-      };
-
-      const dbStatus = normalizedStatusMap[status];
-
       const [result] = await db.query(
         "UPDATE issues SET status = ? WHERE id = ?",
-        [dbStatus, id]
+        [status, id]
       );
 
       if (result.affectedRows === 0) {
         return res.status(404).json({ message: "Issue not found" });
       }
 
-      return res.json({ message: "Status updated", issueId: id, status: dbStatus });
+      return res.json({ message: "Status updated", issueId: id, status });
     } catch (err) {
       return res.status(500).json({ message: "Server error" });
     }

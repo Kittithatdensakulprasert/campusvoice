@@ -1,9 +1,10 @@
 import React from 'react';
 
 const OPTIONS = [
-  { value: 'pending', label: 'รอดำเนินการ' },
+  { value: 'open', label: 'เปิดเรื่อง' },
   { value: 'in_progress', label: 'กำลังแก้ไข' },
-  { value: 'done', label: 'เสร็จสิ้น' }
+  { value: 'resolved', label: 'แก้ไขแล้ว' },
+  { value: 'closed', label: 'ปิดงาน' }
 ];
 
 export default function StatusDropdown({ value, onChange, disabled }) {

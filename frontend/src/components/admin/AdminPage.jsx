@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import IssueTable from './IssueTable';
 
 export default function AdminPage() {
-  const { loading, isStaff } = useAuth();
+  const { loading, user, isStaff } = useAuth();
   const [issues, setIssues] = useState([]);
   const [fetching, setFetching] = useState(true);
   const [updatingId, setUpdatingId] = useState(null);
@@ -13,15 +13,11 @@ export default function AdminPage() {
   const fetchIssues = async () => {
     try {
       setFetching(true);
-      setError('');
+      setError((prev) => (issues.length ? prev : ''));
       const { data } = await api.get('/issues');
       const list = Array.isArray(data) ? data : data.issues || [];
-      setIssues(
-        list.map((item) => ({
-          ...item,
-          status: toUiStatus(item.status)
-        }))
-      );
+      setIssues(list);
+      setError('');
     } catch (err) {
       setError(err.response?.data?.message || 'โหลดรายการปัญหาไม่สำเร็จ');
     } finally {
@@ -48,7 +44,7 @@ export default function AdminPage() {
   };
 
   if (loading) return <div style={{ padding: '2rem' }}>กำลังตรวจสอบผู้ใช้...</div>;
-  if (!isStaff) return <div style={{ padding: '2rem' }}>หน้านี้สำหรับ staff/admin เท่านั้น</div>;
+  if (!user || !isStaff) return <div style={{ padding: '2rem' }}>หน้านี้สำหรับ staff/admin เท่านั้น</div>;
 
   return (
     <div style={{ padding: '2rem' }}>
@@ -56,9 +52,9 @@ export default function AdminPage() {
       <button onClick={fetchIssues} style={{ marginBottom: '1rem' }}>
         รีโหลดข้อมูล
       </button>
-      {fetching ? <p>กำลังโหลด...</p> : null}
+      {fetching ? <p>กำลังโหลดข้อมูลล่าสุด...</p> : null}
       {error ? <p style={{ color: 'crimson' }}>{error}</p> : null}
-      {!fetching && !error ? (
+      {!error ? (
         <IssueTable
           issues={issues}
           updatingId={updatingId}
@@ -67,10 +63,4 @@ export default function AdminPage() {
       ) : null}
     </div>
   );
-}
-
-function toUiStatus(status) {
-  if (status === 'open') return 'pending';
-  if (status === 'resolved' || status === 'closed') return 'done';
-  return status || 'pending';
 }
