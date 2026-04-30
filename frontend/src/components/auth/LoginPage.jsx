@@ -25,11 +25,6 @@ function validate(values) {
 }
 
 function getLoginPayload(data) {
-  // Debug logging to help with different API response formats
-  if (!data?.token && !data?.accessToken && !data?.jwt) {
-    console.warn('No token found in expected fields (token, accessToken, jwt). Response data:', data);
-  }
-  
   return {
     token: data?.token ?? data?.accessToken ?? data?.jwt ?? '',
     user: data?.user ?? data?.data?.user ?? null

@@ -67,6 +67,9 @@ const createRateLimiter = ({
   maxAttempts = DEFAULT_MAX_LOGIN_ATTEMPTS,
   now = Date.now
 } = {}) => {
+  // NOTE: This is an in-memory rate limiter that resets on server restart
+  // For production, consider using Redis or a database-backed rate limiter
+  // to maintain rate limits across deployments and server restarts
   const attempts = new Map();
 
   const consume = (key) => {
