@@ -3,9 +3,6 @@ const router = express.Router();
 const db = require("../db");
 const verifyToken = require("../middleware/verifyToken");
 const roleGuard = require("../middleware/roleGuard");
-// const pool = require('../db');
-// const verifyToken = require('../middleware/verifyToken');
-// const multer = require('multer');
 
 // GET /api/issues — list all issues (with filter/sort query params)
 router.get('/', async (req, res) => {
@@ -49,7 +46,7 @@ router.post('/', async (req, res) => {
 });
 
 router.patch("/:id/status",
-verifyToken,
+  verifyToken,
   roleGuard(["admin", "staff"]),
   async (req, res) => {
     try {
