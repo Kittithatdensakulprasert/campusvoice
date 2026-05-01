@@ -52,6 +52,15 @@ function buildIssueQueryParams({ sort, category, status }) {
   return params;
 }
 
+function getIssueVoteCount(issue) {
+  return issue.vote_count ?? issue.votes ?? 0;
+}
+
+function getIssuesFromResponse(data) {
+  if (Array.isArray(data)) return data;
+  return Array.isArray(data?.issues) ? data.issues : [];
+}
+
 function IssueLayoutNav() {
   const navigate = useNavigate();
   const { logout } = useAuth();
@@ -180,7 +189,7 @@ export function IssueCard({ issue }) {
         <span className={`status-badge ${getStatusClass(issue.status)}`}>
           {statusLabel}
         </span>
-        <span className="issue-votes">▲ {issue.votes || 0}</span>
+        <span className="issue-votes">▲ {getIssueVoteCount(issue)}</span>
       </div>
 
       <h2 className="issue-title">{issue.title || UNTITLED_ISSUE}</h2>
@@ -214,7 +223,7 @@ export function IssueListPage() {
       setLoading(true);
       const params = buildIssueQueryParams({ sort, category, status });
       const res = await api.get('/issues', { params });
-      setIssues(res.data);
+      setIssues(getIssuesFromResponse(res.data));
     } catch (err) {
       console.error(err);
       setIssues([]);
@@ -330,7 +339,7 @@ export function IssueDetailPage() {
             <span className={`status-badge ${getStatusClass(issue.status)}`}>
               {statusLabel}
             </span>
-            <span className="issue-votes">▲ {issue.votes || 0}</span>
+            <span className="issue-votes">▲ {getIssueVoteCount(issue)}</span>
           </div>
 
           <h1>{issue.title || UNTITLED_ISSUE}</h1>
