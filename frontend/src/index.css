@@ -1763,13 +1763,6 @@ select {
   border-color: #86efac;
 }
 
-.status-filter--rejected {
-  color: #991b1b;
-  background: #fee2e2;
-  border-color: #fca5a5;
-}
-
-
 .issue-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1835,11 +1828,6 @@ select {
 .status-closed {
   background: #dcfce7;
   color: #166534;
-}
-
-.status-rejected {
-  background: #fecaca;
-  color: #991b1b;
 }
 
 .status-default {

@@ -17,7 +17,6 @@ const STATUS_LABELS = {
   in_progress: 'กำลังดำเนินการ',
   resolved: 'แก้ไขแล้ว',
   closed: 'เสร็จสิ้น',
-  rejected: 'ไม่อนุมัติ',
 };
 
 const UNKNOWN_STATUS = 'Unknown';
@@ -31,7 +30,6 @@ function getStatusClass(status) {
   if (normalized === 'in_progress' || normalized === 'in progress') return 'status-progress';
   if (normalized === 'resolved') return 'status-resolved';
   if (normalized === 'closed') return 'status-closed';
-  if (normalized === 'rejected') return 'status-rejected';
 
   return 'status-default';
 }
@@ -112,6 +110,10 @@ function IssueLayoutNav() {
 
 function IssueTopBar({ searchText, onSearchChange }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const { user } = useAuth();
+  const profileName = user?.name || 'ผู้ใช้งาน';
+  const profileEmail = user?.email || '';
+  const avatarSeed = encodeURIComponent(user?.email || user?.name || 'CampusVoice');
 
   return (
     <header className="issue-topbar">
@@ -133,14 +135,16 @@ function IssueTopBar({ searchText, onSearchChange }) {
         >
           <img
             className="issue-topbar-profile__avatar"
-            src="https://api.dicebear.com/9.x/adventurer/svg?seed=Somchai"
+            src={`https://api.dicebear.com/9.x/adventurer/svg?seed=${avatarSeed}`}
             alt="โปรไฟล์ผู้ใช้"
           />
         </button>
 
         <div className={`issue-topbar-profile__menu ${menuOpen ? 'is-open' : ''}`}>
-          <p className="issue-topbar-profile__name">สมชาย ใจดี</p>
-          <p className="issue-topbar-profile__email">student@tu.ac.th</p>
+          <p className="issue-topbar-profile__name">{profileName}</p>
+          {profileEmail ? (
+            <p className="issue-topbar-profile__email">{profileEmail}</p>
+          ) : null}
         </div>
       </div>
     </header>
@@ -160,7 +164,6 @@ function FilterSortBar({ status, onStatusChange, category, onCategoryChange, sor
         <option value="in_progress">กำลังดำเนินการ</option>
         <option value="resolved">แก้ไขแล้ว</option>
         <option value="closed">เสร็จสิ้น</option>
-        <option value="rejected">ไม่อนุมัติ</option>
       </select>
 
       <select value={category} onChange={(e) => onCategoryChange(e.target.value)}>
@@ -290,9 +293,6 @@ export function IssueDetailPage() {
   const { id } = useParams();
   const [issue, setIssue] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [status, setStatus] = useState('');
-  const [category, setCategory] = useState('');
-  const [sort, setSort] = useState('date');
 
   const fetchIssueDetail = useCallback(async () => {
     try {
@@ -326,14 +326,6 @@ export function IssueDetailPage() {
       <IssueLayoutNav />
       <section className="issue-content">
         <IssueTopBar searchText="" onSearchChange={() => {}} />
-        <FilterSortBar
-          status={status}
-          onStatusChange={setStatus}
-          category={category}
-          onCategoryChange={setCategory}
-          sort={sort}
-          onSortChange={setSort}
-        />
         <article className="issue-detail">
           <div className="issue-card-header">
             <span className={`status-badge ${getStatusClass(issue.status)}`}>

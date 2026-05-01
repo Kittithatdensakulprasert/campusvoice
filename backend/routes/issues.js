@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../db');
-const mockIssues = require('../data/mockIssues');
 // const verifyToken = require('../middleware/verifyToken');
 // const multer = require('multer');
 
@@ -45,33 +44,51 @@ function getIssueSelectSql(voteAlias = 'votes') {
   `;
 }
 
+function getIssueOrderSql(sort) {
+  if (sort === 'votes') {
+    return 'ORDER BY votes DESC, i.created_at DESC';
+  }
+
+  return 'ORDER BY i.created_at DESC';
+}
+
 // GET /api/issues — list all issues (with filter/sort query params)
-router.get('/', (req, res) => {
-  const category = (req.query.category || '').trim();
-  const status = (req.query.status || req.query.filter || '').trim();
-  const sort = (req.query.sort || 'date').trim();
-  const { limit, offset } = getPagination(req.query);
+router.get('/', async (req, res) => {
+  try {
+    const category = (req.query.category || '').trim();
+    const status = (req.query.status || req.query.filter || '').trim();
+    const sort = (req.query.sort || 'date').trim();
+    const { limit, offset } = getPagination(req.query);
 
-  let issues = [...mockIssues];
+    const where = [];
+    const params = [];
 
-  if (category) {
-    issues = issues.filter((issue) => issue.category === category);
-  }
-
-  if (status) {
-    issues = issues.filter((issue) => issue.status === status);
-  }
-
-  issues.sort((a, b) => {
-    if (sort === 'votes') {
-      return (b.votes || 0) - (a.votes || 0)
-        || new Date(b.created_at) - new Date(a.created_at);
+    if (category) {
+      where.push('i.category = ?');
+      params.push(category);
     }
 
-    return new Date(b.created_at) - new Date(a.created_at);
-  });
+    if (status) {
+      where.push('i.status = ?');
+      params.push(status);
+    }
 
-  res.json(issues.slice(offset, offset + limit));
+    const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
+    const [issues] = await pool.query(
+      `
+        ${getIssueSelectSql('votes')}
+        ${whereSql}
+        ${getIssueOrderSql(sort)}
+        LIMIT ? OFFSET ?
+      `,
+      [...params, limit, offset]
+    );
+
+    res.json(issues);
+  } catch (error) {
+    console.error('List issues error:', error);
+    res.status(500).json({ error: 'Failed to load issues' });
+  }
 });
 
 // GET /api/issues/search?q=keyword — search issues
@@ -105,9 +122,9 @@ router.get('/search', async (req, res) => {
 
     const [issues] = await pool.query(
       `
-        ${getIssueSelectSql('vote_count')}
+        ${getIssueSelectSql('votes')}
         ${whereSql}
-        ORDER BY i.created_at DESC
+        ${getIssueOrderSql(req.query.sort)}
         LIMIT ? OFFSET ?
       `,
       [...params, limit, offset]
@@ -121,20 +138,32 @@ router.get('/search', async (req, res) => {
 });
 
 // GET /api/issues/:id — single issue detail
-router.get('/:id', (req, res) => {
-  const issueId = Number(req.params.id);
+router.get('/:id', async (req, res) => {
+  try {
+    const issueId = Number(req.params.id);
 
-  if (!Number.isInteger(issueId) || issueId <= 0) {
-    return res.status(400).json({ error: 'Invalid issue id' });
+    if (!Number.isInteger(issueId) || issueId <= 0) {
+      return res.status(400).json({ error: 'Invalid issue id' });
+    }
+
+    const [issues] = await pool.query(
+      `
+        ${getIssueSelectSql('votes')}
+        WHERE i.id = ?
+        LIMIT 1
+      `,
+      [issueId]
+    );
+
+    if (issues.length === 0) {
+      return res.status(404).json({ error: 'Issue not found' });
+    }
+
+    res.json(issues[0]);
+  } catch (error) {
+    console.error('Get issue error:', error);
+    res.status(500).json({ error: 'Failed to load issue' });
   }
-
-  const issue = mockIssues.find((item) => item.id === issueId);
-
-  if (!issue) {
-    return res.status(404).json({ error: 'Issue not found' });
-  }
-
-  res.json(issue);
 });
 
 // POST /api/issues — create issue (auth required, image upload)
