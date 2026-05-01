@@ -2,24 +2,17 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { LoginPage, RegisterPage } from './components/auth';
 import DashboardPage from './components/admin/DashboardPage';
+import { IssueDetailPage, IssueListPage } from './components/issues';
+import ReportIssuePage from './components/issues/ReportIssuePage';
 
 function App() {
   return (
     <div className="app">
       <Routes>
         <Route path="/" element={<Navigate to="/issues" replace />} />
-        <Route
-          path="/issues"
-          element={<div style={{ padding: '2rem' }}>Issue List — Feature 3 (ครีม)</div>}
-        />
-        <Route
-          path="/issues/:id"
-          element={<div style={{ padding: '2rem' }}>Issue Detail — Feature 3 &amp; 4</div>}
-        />
-        <Route
-          path="/report"
-          element={<div style={{ padding: '2rem' }}>Report Issue — Feature 2 (แฮม)</div>}
-        />
+        <Route path="/issues" element={<IssueListPage />} />
+        <Route path="/issues/:id" element={<IssueDetailPage />} />
+        <Route path="/report" element={<ReportIssuePage />} />
         <Route
           path="/login"
           element={<LoginPage />}
