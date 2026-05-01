@@ -122,11 +122,14 @@ router.post('/', verifyToken, (req, res, next) => {
   if (!title || !title.trim()) {
     return res.status(400).json({ error: 'กรุณากรอกหัวข้อปัญหา' });
   }
-  if (title.trim().length > 255) {
-    return res.status(400).json({ error: 'หัวข้อปัญหาต้องไม่เกิน 255 ตัวอักษร' });
+  if (title.trim().length > 100) {
+    return res.status(400).json({ error: 'หัวข้อปัญหาต้องไม่เกิน 100 ตัวอักษร' });
   }
   if (!description || !description.trim()) {
     return res.status(400).json({ error: 'กรุณากรอกรายละเอียดปัญหา' });
+  }
+  if (description.trim().length > 500) {
+    return res.status(400).json({ error: 'รายละเอียดต้องไม่เกิน 500 ตัวอักษร' });
   }
   if (category && !VALID_CATEGORIES.includes(category)) {
     return res.status(400).json({ error: 'หมวดหมู่ไม่ถูกต้อง' });
