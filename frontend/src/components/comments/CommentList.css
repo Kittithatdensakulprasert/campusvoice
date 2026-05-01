@@ -1,0 +1,28 @@
+.comment-list {
+  margin-top: var(--space-8);
+}
+
+.comment-list__title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: var(--space-4);
+  color: var(--color-text);
+}
+
+.comment-list__items {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+}
+
+.comment-list__status {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-soft);
+  text-align: center;
+  padding: var(--space-6) 0;
+}
+
+.comment-list__status--error {
+  color: var(--color-error);
+}

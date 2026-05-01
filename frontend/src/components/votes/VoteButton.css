@@ -1,0 +1,47 @@
+.vote-btn {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  min-width: 3rem;
+}
+
+.vote-btn:hover:not(:disabled) {
+  border-color: var(--color-primary-400);
+  color: var(--color-primary-500);
+  background: var(--color-primary-50);
+}
+
+.vote-btn--active {
+  border-color: var(--color-primary-500);
+  background: var(--color-primary-50);
+  color: var(--color-primary-600);
+}
+
+.vote-btn--active .vote-btn__icon {
+  color: var(--color-primary-500);
+}
+
+.vote-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.vote-btn__icon {
+  font-size: 0.75rem;
+  line-height: 1;
+}
+
+.vote-btn__count {
+  font-size: var(--font-size-md);
+  line-height: 1;
+}

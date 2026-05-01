@@ -1,7 +1,7 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { LoginPage, RegisterPage } from './components/auth';
-
+import DashboardPage from './components/admin/DashboardPage';
 
 function App() {
   return (
@@ -28,10 +28,7 @@ function App() {
           path="/register"
           element={<RegisterPage />}
         />
-        <Route
-          path="/dashboard"
-          element={<div style={{ padding: '2rem' }}>Dashboard — Feature 5 (ไผ่)</div>}
-        />
+        <Route path="/dashboard" element={<DashboardPage />} />
         <Route
           path="/admin"
           element={<div style={{ padding: '2rem' }}>Admin Panel — Feature 6 (mark)</div>}
