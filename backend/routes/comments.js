@@ -6,6 +6,7 @@ const verifyToken = require('../middleware/verifyToken');
 // GET /api/comments/:issueId — ดูความคิดเห็นของ issue
 router.get('/:issueId', async (req, res) => {
   const issueId = parseInt(req.params.issueId);
+  if (isNaN(issueId)) return res.status(400).json({ error: 'Invalid issue ID' });
 
   try {
     const [comments] = await pool.query(
@@ -33,6 +34,7 @@ router.get('/:issueId', async (req, res) => {
 // POST /api/comments/:issueId — เพิ่มความคิดเห็น (ต้อง login)
 router.post('/:issueId', verifyToken, async (req, res) => {
   const issueId = parseInt(req.params.issueId);
+  if (isNaN(issueId)) return res.status(400).json({ error: 'Invalid issue ID' });
   const userId = req.user.id;
   const { body } = req.body;
 
@@ -76,6 +78,7 @@ router.post('/:issueId', verifyToken, async (req, res) => {
 // DELETE /api/comments/:id — ลบ comment (เจ้าของ หรือ admin)
 router.delete('/:id', verifyToken, async (req, res) => {
   const commentId = parseInt(req.params.id);
+  if (isNaN(commentId)) return res.status(400).json({ error: 'Invalid comment ID' });
   const userId = req.user.id;
   const userRole = req.user.role;
 

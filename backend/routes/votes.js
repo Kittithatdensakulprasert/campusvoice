@@ -6,6 +6,7 @@ const verifyToken = require('../middleware/verifyToken');
 // POST /api/votes/:issueId — toggle vote (1 user = 1 vote)
 router.post('/:issueId', verifyToken, async (req, res) => {
   const issueId = parseInt(req.params.issueId);
+  if (isNaN(issueId)) return res.status(400).json({ error: 'Invalid issue ID' });
   const userId = req.user.id;
 
   try {
@@ -47,6 +48,7 @@ router.post('/:issueId', verifyToken, async (req, res) => {
 // DELETE /api/votes/:issueId — ยกเลิก vote
 router.delete('/:issueId', verifyToken, async (req, res) => {
   const issueId = parseInt(req.params.issueId);
+  if (isNaN(issueId)) return res.status(400).json({ error: 'Invalid issue ID' });
   const userId = req.user.id;
 
   try {

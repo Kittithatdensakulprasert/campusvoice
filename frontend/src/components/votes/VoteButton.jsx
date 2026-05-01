@@ -15,6 +15,7 @@ export default function VoteButton({ issueId, voteCount = 0, voted = false }) {
   const [count, setCount] = useState(voteCount);
   const [hasVoted, setHasVoted] = useState(voted);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleVote = async () => {
     if (!isAuthenticated) {
@@ -23,7 +24,11 @@ export default function VoteButton({ issueId, voteCount = 0, voted = false }) {
     }
 
     if (loading) return;
+
+    const prevCount = count;
+    const prevVoted = hasVoted;
     setLoading(true);
+    setError('');
 
     try {
       if (hasVoted) {
@@ -36,6 +41,9 @@ export default function VoteButton({ issueId, voteCount = 0, voted = false }) {
         setHasVoted(true);
       }
     } catch (err) {
+      setCount(prevCount);
+      setHasVoted(prevVoted);
+      setError('เกิดข้อผิดพลาด กรุณาลองใหม่');
       console.error('Vote error:', err);
     } finally {
       setLoading(false);
@@ -43,14 +51,17 @@ export default function VoteButton({ issueId, voteCount = 0, voted = false }) {
   };
 
   return (
-    <button
-      className={`vote-btn${hasVoted ? ' vote-btn--active' : ''}`}
-      onClick={handleVote}
-      disabled={loading}
-      title={hasVoted ? 'ยกเลิกโหวต' : 'โหวต'}
-    >
-      <span className="vote-btn__icon">▲</span>
-      <span className="vote-btn__count">{count}</span>
-    </button>
+    <div>
+      <button
+        className={`vote-btn${hasVoted ? ' vote-btn--active' : ''}`}
+        onClick={handleVote}
+        disabled={loading}
+        title={hasVoted ? 'ยกเลิกโหวต' : 'โหวต'}
+      >
+        <span className="vote-btn__icon">▲</span>
+        <span className="vote-btn__count">{count}</span>
+      </button>
+      {error && <p style={{ fontSize: '0.75rem', color: 'var(--color-error)', margin: '0.25rem 0 0' }}>{error}</p>}
+    </div>
   );
 }

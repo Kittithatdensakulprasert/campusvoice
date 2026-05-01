@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
 import './CommentForm.css';
@@ -18,7 +19,7 @@ export default function CommentForm({ issueId, onAdded }) {
   if (!isAuthenticated) {
     return (
       <p className="comment-form__login-hint">
-        กรุณา <a href="/login">เข้าสู่ระบบ</a> ก่อนแสดงความคิดเห็น
+        กรุณา <Link to="/login">เข้าสู่ระบบ</Link> ก่อนแสดงความคิดเห็น
       </p>
     );
   }
