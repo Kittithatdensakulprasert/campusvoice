@@ -4,6 +4,7 @@ import AdminPage from './components/admin/AdminPage';
 import { LoginPage, RegisterPage } from './components/auth';
 import DashboardPage from './components/admin/DashboardPage';
 import { IssueDetailPage, IssueListPage } from './components/issues';
+import ReportIssuePage from './components/issues/ReportIssuePage';
 
 function App() {
   return (
@@ -12,10 +13,7 @@ function App() {
         <Route path="/" element={<Navigate to="/issues" replace />} />
         <Route path="/issues" element={<IssueListPage />} />
         <Route path="/issues/:id" element={<IssueDetailPage />} />
-        <Route
-          path="/report"
-          element={<div style={{ padding: '2rem' }}>Report Issue — Feature 2 (แฮม)</div>}
-        />
+        <Route path="/report" element={<ReportIssuePage />} />
         <Route
           path="/login"
           element={<LoginPage />}
