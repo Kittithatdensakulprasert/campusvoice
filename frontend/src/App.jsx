@@ -25,17 +25,20 @@ function App() {
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/issues" element={<IssueListPage />} />
         <Route path="/issues/:id" element={<IssueDetailPage />} />
-        <Route path="/report" element={<ReportIssuePage />} />
         <Route
-          path="/login"
-          element={<LoginPage />}
+          path="/report"
+          element={<ProtectedRoute><ReportIssuePage /></ProtectedRoute>}
+        />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route
+          path="/dashboard"
+          element={<ProtectedRoute><DashboardPage /></ProtectedRoute>}
         />
         <Route
-          path="/register"
-          element={<RegisterPage />}
+          path="/admin"
+          element={<ProtectedRoute requireStaff><AdminPage /></ProtectedRoute>}
         />
-        <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
-        <Route path="/admin" element={<ProtectedRoute requireStaff><AdminPage /></ProtectedRoute>} />
         <Route
           path="*"
           element={<div style={{ padding: '2rem' }}>404 — Page Not Found</div>}
