@@ -1,32 +1,30 @@
 const express = require('express');
 const router = express.Router();
-const pool = require('../db');
+const mongoose = require('mongoose');
+const User = require('../models/User');
+const Issue = require('../models/Issue');
 const verifyToken = require('../middleware/verifyToken');
 const roleGuard = require('../middleware/roleGuard');
 
-const ADMIN_USER_FIELDS = `
-  id,
-  email,
-  name,
-  role,
-  avatar_url,
-  created_at,
-  updated_at
-`;
-const VALID_ROLES = ['user', 'staff', 'admin'];
+const STATUS_ORDER = ['open', 'in_progress', 'resolved', 'closed'];
+const ALLOWED_ROLES = ['user', 'staff', 'admin'];
+const ADMIN_USER_FIELDS = 'email name role avatar_url created_at updated_at';
+
+function serializeUser(user) {
+  if (!user) return null;
+  const id = user._id?.toString?.() || user.id;
+  return { ...user, id };
+}
 
 // GET /api/admin/users - list all users (admin only)
 router.get('/users', verifyToken, roleGuard(['admin']), async (req, res) => {
   try {
-    const [users] = await pool.query(
-      `
-        SELECT ${ADMIN_USER_FIELDS}
-        FROM users
-        ORDER BY created_at DESC
-      `
-    );
+    const users = await User.find({})
+      .select(ADMIN_USER_FIELDS)
+      .sort({ created_at: -1 })
+      .lean();
 
-    res.json({ users });
+    res.json({ users: users.map(serializeUser) });
   } catch (error) {
     console.error('List users error:', error);
     res.status(500).json({ error: 'Failed to load users' });
@@ -35,73 +33,61 @@ router.get('/users', verifyToken, roleGuard(['admin']), async (req, res) => {
 
 // PATCH /api/admin/users/:id/role - update user role (admin only)
 router.patch('/users/:id/role', verifyToken, roleGuard(['admin']), async (req, res) => {
-  const userId = Number(req.params.id);
+  const { id } = req.params;
   const { role } = req.body;
 
-  if (!Number.isInteger(userId) || userId <= 0) {
+  if (!mongoose.isValidObjectId(id)) {
     return res.status(400).json({ error: 'Invalid user id' });
   }
 
-  if (!VALID_ROLES.includes(role)) {
+  if (!ALLOWED_ROLES.includes(role)) {
     return res.status(400).json({ error: 'Role must be one of: user, staff, admin' });
   }
 
-  if (userId === req.user.id) {
+  if (id === req.user.id) {
     return res.status(400).json({ error: 'Cannot change your own role' });
   }
 
   try {
-    const [result] = await pool.query(
-      'UPDATE users SET role = ? WHERE id = ?',
-      [role, userId]
-    );
+    const user = await User.findByIdAndUpdate(id, { role }, { new: true })
+      .select(ADMIN_USER_FIELDS)
+      .lean();
 
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: 'User not found' });
-    }
+    if (!user) return res.status(404).json({ error: 'User not found' });
 
-    const [[user]] = await pool.query(
-      `
-        SELECT ${ADMIN_USER_FIELDS}
-        FROM users
-        WHERE id = ?
-      `,
-      [userId]
-    );
-
-    res.json({ message: 'Role updated', userId, role, user });
+    res.json({ message: 'Role updated', userId: id, role, user: serializeUser(user) });
   } catch (error) {
     console.error('Update user role error:', error);
     res.status(500).json({ error: 'Failed to update user role' });
   }
 });
 
-// GET /api/admin/stats - aggregate stats for dashboard (admin/staff)
+// GET /api/admin/stats
 router.get('/stats', verifyToken, roleGuard(['admin', 'staff']), async (req, res) => {
   try {
-    const [[totalRow]] = await pool.query('SELECT COUNT(*) AS totalIssues FROM issues');
-    const [byCategory] = await pool.query(
-      `
-        SELECT COALESCE(NULLIF(category, ''), 'Uncategorized') AS category, COUNT(*) AS count
-        FROM issues
-        GROUP BY COALESCE(NULLIF(category, ''), 'Uncategorized')
-        ORDER BY count DESC
-      `
-    );
-    const [byStatus] = await pool.query(
-      `
-        SELECT status, COUNT(*) AS count
-        FROM issues
-        GROUP BY status
-        ORDER BY FIELD(status, 'open', 'in_progress', 'resolved', 'closed')
-      `
-    );
+    const totalIssues = await Issue.countDocuments();
 
-    res.json({
-      totalIssues: totalRow.totalIssues,
-      byCategory,
-      byStatus
-    });
+    const byCategory = await Issue.aggregate([
+      {
+        $group: {
+          _id: { $ifNull: [{ $nullIf: ['$category', ''] }, 'Uncategorized'] },
+          count: { $sum: 1 },
+        },
+      },
+      { $project: { category: '$_id', count: 1, _id: 0 } },
+      { $sort: { count: -1 } },
+    ]);
+
+    const byStatusRaw = await Issue.aggregate([
+      { $group: { _id: '$status', count: { $sum: 1 } } },
+      { $project: { status: '$_id', count: 1, _id: 0 } },
+    ]);
+
+    const byStatus = STATUS_ORDER
+      .map(s => byStatusRaw.find(r => r.status === s))
+      .filter(Boolean);
+
+    res.json({ totalIssues, byCategory, byStatus });
   } catch (error) {
     console.error('Stats error:', error);
     res.status(500).json({ error: 'Failed to load dashboard stats' });

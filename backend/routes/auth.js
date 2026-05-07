@@ -1,5 +1,4 @@
 const express = require('express');
-const pool = require('../db');
 const verifyToken = require('../middleware/verifyToken');
 const { createAuthRepository } = require('../repositories/authRepository');
 const { AuthError, createAuthService } = require('../services/authService');
@@ -26,7 +25,7 @@ const handleAuthError = (error, res) => {
 
 const buildAuthRouter = ({
   authService = createAuthService({
-    authRepository: createAuthRepository(pool)
+    authRepository: createAuthRepository()
   }),
   authMiddleware = verifyToken
 } = {}) => {
