@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
 import './VoteButton.css';
@@ -9,13 +9,22 @@ import './VoteButton.css';
  *   issueId   {number}  — ID ของ issue
  *   voteCount {number}  — จำนวน vote เริ่มต้น
  *   voted     {boolean} — user นี้โหวตแล้วหรือยัง
+ *   onChange  {function} — callback เมื่อสถานะโหวตเปลี่ยน ({ voted, voteCount })
  */
-export default function VoteButton({ issueId, voteCount = 0, voted = false }) {
+export default function VoteButton({ issueId, voteCount = 0, voted = false, onChange }) {
   const { isAuthenticated } = useAuth();
   const [count, setCount] = useState(voteCount);
   const [hasVoted, setHasVoted] = useState(voted);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    setCount(voteCount);
+  }, [voteCount]);
+
+  useEffect(() => {
+    setHasVoted(voted);
+  }, [voted]);
 
   const handleVote = async () => {
     if (!isAuthenticated) {
@@ -35,10 +44,12 @@ export default function VoteButton({ issueId, voteCount = 0, voted = false }) {
         const { data } = await api.delete(`/votes/${issueId}`);
         setCount(data.voteCount);
         setHasVoted(false);
+        if (onChange) onChange({ voted: false, voteCount: data.voteCount });
       } else {
         const { data } = await api.post(`/votes/${issueId}`);
         setCount(data.voteCount);
         setHasVoted(true);
+        if (onChange) onChange({ voted: true, voteCount: data.voteCount });
       }
     } catch (err) {
       setCount(prevCount);

@@ -2,6 +2,8 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
+import VoteButton from '../votes/VoteButton';
+import CommentList from '../comments/CommentList';
 
 const ISSUE_CATEGORIES = [
   'ห้องเรียน',
@@ -293,12 +295,19 @@ export function IssueDetailPage() {
   const { id } = useParams();
   const [issue, setIssue] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [voteCount, setVoteCount] = useState(0);
+  const [hasVoted, setHasVoted] = useState(false);
+
+  const issueId = Number(id);
 
   const fetchIssueDetail = useCallback(async () => {
     try {
       setLoading(true);
       const res = await api.get(`/issues/${id}`);
-      setIssue(res.data);
+      const issueData = res.data;
+      setIssue(issueData);
+      setVoteCount(getIssueVoteCount(issueData));
+      setHasVoted(false);
     } catch (err) {
       console.error(err);
       setIssue(null);
@@ -331,7 +340,18 @@ export function IssueDetailPage() {
             <span className={`status-badge ${getStatusClass(issue.status)}`}>
               {statusLabel}
             </span>
-            <span className="issue-votes">▲ {getIssueVoteCount(issue)}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <VoteButton
+                issueId={issueId}
+                voteCount={voteCount}
+                voted={hasVoted}
+                onChange={({ voted, voteCount: nextCount }) => {
+                  setHasVoted(voted);
+                  setVoteCount(nextCount);
+                }}
+              />
+              <span className="issue-votes">▲ {voteCount}</span>
+            </div>
           </div>
 
           <h1>{issue.title || UNTITLED_ISSUE}</h1>
@@ -353,6 +373,8 @@ export function IssueDetailPage() {
               alt={issue.title ? `Reported issue: ${issue.title}` : 'Reported issue'}
             />
           ) : null}
+
+          <CommentList issueId={issueId} />
         </article>
       </section>
     </main>
