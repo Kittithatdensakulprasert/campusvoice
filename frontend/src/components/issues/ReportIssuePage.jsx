@@ -101,7 +101,9 @@ export default function ReportIssuePage() {
 
     setIsSubmitting(true);
     try {
-      await api.post('/issues', data);
+      await api.post('/issues', data, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
       setSuccess(true);
     } catch (err) {
       setError(err.response?.data?.error || 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');

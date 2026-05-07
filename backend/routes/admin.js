@@ -5,15 +5,52 @@ const verifyToken = require('../middleware/verifyToken');
 const roleGuard = require('../middleware/roleGuard');
 
 // GET /api/admin/users — list all users (admin only)
-router.get('/users', async (req, res) => {
-  // TODO: Feature 6 — verifyToken + roleGuard(['admin'])
-  res.status(501).json({ message: 'List users — not yet implemented' });
+router.get('/users', verifyToken, roleGuard(['admin']), async (req, res) => {
+  try {
+    const [users] = await pool.query(
+      'SELECT id, email, name, role, created_at FROM users ORDER BY created_at DESC'
+    );
+    res.json({ users });
+  } catch (error) {
+    console.error('List users error:', error);
+    res.status(500).json({ error: 'Failed to load users' });
+  }
 });
 
 // PATCH /api/admin/users/:id/role — update user role (admin only)
-router.patch('/users/:id/role', async (req, res) => {
-  // TODO: Feature 6 — verifyToken + roleGuard(['admin'])
-  res.status(501).json({ message: 'Update user role — not yet implemented' });
+router.patch('/users/:id/role', verifyToken, roleGuard(['admin']), async (req, res) => {
+  const userId = Number(req.params.id);
+  const { role } = req.body;
+  const allowedRoles = ['user', 'staff', 'admin'];
+
+  if (!Number.isInteger(userId) || userId <= 0) {
+    return res.status(400).json({ error: 'Invalid user id' });
+  }
+
+  if (!allowedRoles.includes(role)) {
+    return res.status(400).json({ error: 'Invalid role' });
+  }
+
+  // ห้ามเปลี่ยน role ของตัวเอง
+  if (userId === req.user.id) {
+    return res.status(400).json({ error: 'ไม่สามารถเปลี่ยน role ของตัวเองได้' });
+  }
+
+  try {
+    const [result] = await pool.query(
+      'UPDATE users SET role = ? WHERE id = ?',
+      [role, userId]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json({ message: 'Role updated', userId, role });
+  } catch (error) {
+    console.error('Update role error:', error);
+    res.status(500).json({ error: 'Failed to update role' });
+  }
 });
 
 // GET /api/admin/stats — aggregate stats for dashboard (admin/staff)
