@@ -1,16 +1,17 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../db');
-// const verifyToken = require('../middleware/verifyToken');
+const verifyToken = require('../middleware/verifyToken');
+const roleGuard = require('../middleware/roleGuard');
 // const multer = require('multer');
 
-// GET /api/issues — list all issues (with filter/sort query params)
+// GET /api/issues - list all issues (with filter/sort query params)
 router.get('/', async (req, res) => {
-  // TODO: Feature 3 — query params: category, status, sort, page
-  res.status(501).json({ message: 'List issues — not yet implemented' });
+  // TODO: Feature 3 - query params: category, status, sort, page
+  res.status(501).json({ message: 'List issues - not yet implemented' });
 });
 
-// GET /api/issues/search?q=keyword — search issues
+// GET /api/issues/search?q=keyword - search issues
 router.get('/search', async (req, res) => {
   try {
     const keyword = (req.query.q || '').trim();
@@ -75,28 +76,62 @@ router.get('/search', async (req, res) => {
   }
 });
 
-// GET /api/issues/:id — single issue detail
+// GET /api/issues/:id - single issue detail
 router.get('/:id', async (req, res) => {
   // TODO: Feature 3
-  res.status(501).json({ message: 'Get issue — not yet implemented' });
+  res.status(501).json({ message: 'Get issue - not yet implemented' });
 });
 
-// POST /api/issues — create issue (auth required, image upload)
+// POST /api/issues - create issue (auth required, image upload)
 router.post('/', async (req, res) => {
-  // TODO: Feature 2 — verifyToken + multer upload
-  res.status(501).json({ message: 'Create issue — not yet implemented' });
+  // TODO: Feature 2 - verifyToken + multer upload
+  res.status(501).json({ message: 'Create issue - not yet implemented' });
 });
 
-// PATCH /api/issues/:id/status — update issue status (staff/admin only)
+// PATCH /api/issues/:id/status - update issue status (staff/admin only)
 router.patch('/:id/status', async (req, res) => {
-  // TODO: Feature 6 — verifyToken + roleGuard(['admin', 'staff'])
-  res.status(501).json({ message: 'Update issue status — not yet implemented' });
+  // TODO: Feature 6 - verifyToken + roleGuard(['admin', 'staff'])
+  res.status(501).json({ message: 'Update issue status - not yet implemented' });
 });
 
-// DELETE /api/issues/:id — delete issue (admin only)
-router.delete('/:id', async (req, res) => {
-  // TODO: Feature 6 — verifyToken + roleGuard(['admin'])
-  res.status(501).json({ message: 'Delete issue — not yet implemented' });
+// DELETE /api/issues/:id - delete issue (admin only)
+router.delete('/:id', verifyToken, roleGuard(['admin']), async (req, res) => {
+  try {
+    const issueId = Number(req.params.id);
+
+    if (!Number.isInteger(issueId) || issueId <= 0) {
+      return res.status(400).json({ error: 'Invalid issue id' });
+    }
+
+    const [[issue]] = await pool.query(
+      `
+        SELECT
+          id,
+          title,
+          description,
+          category,
+          location,
+          image_url,
+          status,
+          created_at,
+          updated_at
+        FROM issues
+        WHERE id = ?
+      `,
+      [issueId]
+    );
+
+    if (!issue) {
+      return res.status(404).json({ error: 'Issue not found' });
+    }
+
+    await pool.query('DELETE FROM issues WHERE id = ?', [issueId]);
+
+    res.json({ message: 'Issue deleted successfully', issue });
+  } catch (error) {
+    console.error('Delete issue error:', error);
+    res.status(500).json({ error: 'Failed to delete issue' });
+  }
 });
 
 module.exports = router;
