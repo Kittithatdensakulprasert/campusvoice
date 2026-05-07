@@ -4,8 +4,10 @@ import api from '../../api/axios';
 import './ReportIssuePage.css';
 
 const CATEGORIES = ['ห้องเรียน', 'ห้องน้ำ', 'อาหาร', 'Wi-Fi', 'ความปลอดภัย', 'อื่นๆ'];
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const TITLE_MAX = 100;
 const DESC_MAX = 500;
+const LOCATION_MAX = 200;
 
 export default function ReportIssuePage() {
   const navigate = useNavigate();
@@ -22,20 +24,29 @@ export default function ReportIssuePage() {
   const [isDragging, setIsDragging] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(false);
 
   function handleChange(e) {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   }
 
+  function clearImageState() {
+    setImage(null);
+    setImagePreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  }
+
   function handleFile(file) {
     if (!file) return;
-    if (!file.type.startsWith('image/')) {
-      setError('รับเฉพาะไฟล์รูปภาพเท่านั้น');
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      setError('รับเฉพาะไฟล์ PNG, JPG, WEBP เท่านั้น');
+      clearImageState();
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
       setError('ไฟล์รูปภาพต้องมีขนาดไม่เกิน 5MB');
+      clearImageState();
       return;
     }
     setError(null);
@@ -65,9 +76,7 @@ export default function ReportIssuePage() {
   }
 
   function removeImage() {
-    setImage(null);
-    setImagePreview(null);
-    if (fileInputRef.current) fileInputRef.current.value = '';
+    clearImageState();
   }
 
   async function handleSubmit(e) {
@@ -92,15 +101,27 @@ export default function ReportIssuePage() {
 
     setIsSubmitting(true);
     try {
-      const res = await api.post('/issues', data, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      navigate(`/issues/${res.data.id}`);
+      await api.post('/issues', data);
+      setSuccess(true);
     } catch (err) {
       setError(err.response?.data?.error || 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');
     } finally {
       setIsSubmitting(false);
     }
+  }
+
+  if (success) {
+    return (
+      <div className="report-page">
+        <div className="report-card">
+          <h1 className="report-title">ส่งเรื่องสำเร็จ</h1>
+          <p className="success-message">ปัญหาของคุณถูกบันทึกแล้ว ทีมงานจะดำเนินการโดยเร็วที่สุด</p>
+          <div className="form-actions">
+            <button className="btn-submit" onClick={() => navigate('/')}>กลับหน้าหลัก</button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -171,6 +192,7 @@ export default function ReportIssuePage() {
                 type="text"
                 value={form.location}
                 onChange={handleChange}
+                maxLength={LOCATION_MAX}
                 placeholder="เช่น ตึก A ชั้น 3"
                 className="form-input"
               />

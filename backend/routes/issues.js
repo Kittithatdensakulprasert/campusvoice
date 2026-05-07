@@ -1,5 +1,7 @@
 const express = require('express');
 const router = express.Router();
+const crypto = require('crypto');
+const fs = require('fs');
 const path = require('path');
 const multer = require('multer');
 const pool = require('../db');
@@ -11,7 +13,7 @@ const storage = multer.diskStorage({
   destination: path.join(__dirname, '..', 'uploads'),
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname);
-    cb(null, `${Date.now()}-${Math.round(Math.random() * 1e6)}${ext}`);
+    cb(null, `${crypto.randomUUID()}${ext}`);
   },
 });
 
@@ -119,20 +121,33 @@ router.post('/', verifyToken, (req, res, next) => {
 }, async (req, res) => {
   const { title, description, category, location } = req.body;
 
+  function cleanupUpload() {
+    if (req.file) fs.unlink(req.file.path, () => {});
+  }
+
   if (!title || !title.trim()) {
+    cleanupUpload();
     return res.status(400).json({ error: 'กรุณากรอกหัวข้อปัญหา' });
   }
   if (title.trim().length > 100) {
+    cleanupUpload();
     return res.status(400).json({ error: 'หัวข้อปัญหาต้องไม่เกิน 100 ตัวอักษร' });
   }
   if (!description || !description.trim()) {
+    cleanupUpload();
     return res.status(400).json({ error: 'กรุณากรอกรายละเอียดปัญหา' });
   }
   if (description.trim().length > 500) {
+    cleanupUpload();
     return res.status(400).json({ error: 'รายละเอียดต้องไม่เกิน 500 ตัวอักษร' });
   }
   if (category && !VALID_CATEGORIES.includes(category)) {
+    cleanupUpload();
     return res.status(400).json({ error: 'หมวดหมู่ไม่ถูกต้อง' });
+  }
+  if (location && location.trim().length > 200) {
+    cleanupUpload();
+    return res.status(400).json({ error: 'สถานที่ต้องไม่เกิน 200 ตัวอักษร' });
   }
 
   const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
@@ -150,6 +165,7 @@ router.post('/', verifyToken, (req, res, next) => {
       image_url: imageUrl,
     });
   } catch (error) {
+    cleanupUpload();
     console.error('Create issue error:', error);
     res.status(500).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });
   }

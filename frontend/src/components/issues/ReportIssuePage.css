@@ -50,6 +50,9 @@
   outline: none;
   transition: border-color 0.2s;
   font-family: inherit;
+}
+
+textarea.form-input {
   resize: vertical;
 }
 
@@ -113,9 +116,9 @@
   text-decoration: underline;
 }
 
-.upload-hint {
+.upload-zone .upload-hint {
   color: #aaa;
-  font-size: 0.78rem !important;
+  font-size: 0.78rem;
 }
 
 .file-input-hidden {
@@ -176,6 +179,11 @@
   font-size: 0.875rem;
   padding: 0.6rem 0.875rem;
   margin-bottom: 1rem;
+}
+
+.success-message {
+  color: #555;
+  margin-bottom: 1.5rem;
 }
 
 /* Actions */
