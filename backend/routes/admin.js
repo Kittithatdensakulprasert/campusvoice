@@ -47,6 +47,10 @@ router.patch('/users/:id/role', verifyToken, roleGuard(['admin']), async (req, r
       return res.status(400).json({ error: 'Role must be one of: user, staff, admin' });
     }
 
+    if (userId === req.user.id) {
+      return res.status(400).json({ error: 'Cannot change your own role' });
+    }
+
     const [result] = await pool.query(
       'UPDATE users SET role = ? WHERE id = ?',
       [role, userId]
