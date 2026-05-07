@@ -1,8 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const pool = require('../db');
+const Issue = require('../models/Issue');
 const verifyToken = require('../middleware/verifyToken');
 const roleGuard = require('../middleware/roleGuard');
+
+const STATUS_ORDER = ['open', 'in_progress', 'resolved', 'closed'];
 
 // GET /api/admin/users — list all users (admin only)
 router.get('/users', async (req, res) => {
@@ -16,32 +18,32 @@ router.patch('/users/:id/role', async (req, res) => {
   res.status(501).json({ message: 'Update user role — not yet implemented' });
 });
 
-// GET /api/admin/stats — aggregate stats for dashboard (admin/staff)
+// GET /api/admin/stats
 router.get('/stats', verifyToken, roleGuard(['admin', 'staff']), async (req, res) => {
   try {
-    const [[totalRow]] = await pool.query('SELECT COUNT(*) AS totalIssues FROM issues');
-    const [byCategory] = await pool.query(
-      `
-        SELECT COALESCE(NULLIF(category, ''), 'Uncategorized') AS category, COUNT(*) AS count
-        FROM issues
-        GROUP BY COALESCE(NULLIF(category, ''), 'Uncategorized')
-        ORDER BY count DESC
-      `
-    );
-    const [byStatus] = await pool.query(
-      `
-        SELECT status, COUNT(*) AS count
-        FROM issues
-        GROUP BY status
-        ORDER BY FIELD(status, 'open', 'in_progress', 'resolved', 'closed')
-      `
-    );
+    const totalIssues = await Issue.countDocuments();
 
-    res.json({
-      totalIssues: totalRow.totalIssues,
-      byCategory,
-      byStatus
-    });
+    const byCategory = await Issue.aggregate([
+      {
+        $group: {
+          _id: { $ifNull: [{ $nullIf: ['$category', ''] }, 'Uncategorized'] },
+          count: { $sum: 1 },
+        },
+      },
+      { $project: { category: '$_id', count: 1, _id: 0 } },
+      { $sort: { count: -1 } },
+    ]);
+
+    const byStatusRaw = await Issue.aggregate([
+      { $group: { _id: '$status', count: { $sum: 1 } } },
+      { $project: { status: '$_id', count: 1, _id: 0 } },
+    ]);
+
+    const byStatus = STATUS_ORDER
+      .map(s => byStatusRaw.find(r => r.status === s))
+      .filter(Boolean);
+
+    res.json({ totalIssues, byCategory, byStatus });
   } catch (error) {
     console.error('Stats error:', error);
     res.status(500).json({ error: 'Failed to load dashboard stats' });
