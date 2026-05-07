@@ -1,8 +1,35 @@
 const express = require('express');
 const router = express.Router();
+const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
+const multer = require('multer');
 const pool = require('../db');
-const verifyToken = require("../middleware/verifyToken");
-const roleGuard = require("../middleware/roleGuard");
+const verifyToken = require('../middleware/verifyToken');
+const roleGuard = require('../middleware/roleGuard');
+
+const VALID_CATEGORIES = ['ห้องเรียน', 'ห้องน้ำ', 'อาหาร', 'Wi-Fi', 'ความปลอดภัย', 'อื่นๆ'];
+
+const storage = multer.diskStorage({
+  destination: path.join(__dirname, '..', 'uploads'),
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    cb(null, `${crypto.randomUUID()}${ext}`);
+  },
+});
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const allowed = ['image/jpeg', 'image/png', 'image/webp'];
+    if (allowed.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('อัพโหลดได้เฉพาะไฟล์รูปภาพ (JPEG, PNG, WEBP)'));
+    }
+  },
+});
 
 const DEFAULT_LIMIT = 50;
 const MAX_LIMIT = 100;
@@ -167,9 +194,67 @@ router.get('/:id', async (req, res) => {
 });
 
 // POST /api/issues — create issue (auth required, image upload)
-router.post('/', async (req, res) => {
-  // TODO: Feature 2 — verifyToken + multer upload
-  res.status(501).json({ message: 'Create issue — not yet implemented' });
+router.post('/', verifyToken, (req, res, next) => {
+  upload.single('image')(req, res, (err) => {
+    if (err instanceof multer.MulterError && err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({ error: 'ไฟล์รูปภาพต้องมีขนาดไม่เกิน 5MB' });
+    }
+    if (err) {
+      return res.status(400).json({ error: err.message });
+    }
+    next();
+  });
+}, async (req, res) => {
+  const { title, description, category, location } = req.body;
+
+  function cleanupUpload() {
+    if (req.file) fs.unlink(req.file.path, () => {});
+  }
+
+  if (!title || !title.trim()) {
+    cleanupUpload();
+    return res.status(400).json({ error: 'กรุณากรอกหัวข้อปัญหา' });
+  }
+  if (title.trim().length > 100) {
+    cleanupUpload();
+    return res.status(400).json({ error: 'หัวข้อปัญหาต้องไม่เกิน 100 ตัวอักษร' });
+  }
+  if (!description || !description.trim()) {
+    cleanupUpload();
+    return res.status(400).json({ error: 'กรุณากรอกรายละเอียดปัญหา' });
+  }
+  if (description.trim().length > 500) {
+    cleanupUpload();
+    return res.status(400).json({ error: 'รายละเอียดต้องไม่เกิน 500 ตัวอักษร' });
+  }
+  if (category && !VALID_CATEGORIES.includes(category)) {
+    cleanupUpload();
+    return res.status(400).json({ error: 'หมวดหมู่ไม่ถูกต้อง' });
+  }
+  if (location && location.trim().length > 200) {
+    cleanupUpload();
+    return res.status(400).json({ error: 'สถานที่ต้องไม่เกิน 200 ตัวอักษร' });
+  }
+
+  const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
+
+  try {
+    const [result] = await pool.query(
+      'INSERT INTO issues (user_id, title, description, category, location, image_url) VALUES (?, ?, ?, ?, ?, ?)',
+      [req.user.id, title.trim(), description.trim(), category || null, location?.trim() || null, imageUrl]
+    );
+
+    res.status(201).json({
+      id: result.insertId,
+      title: title.trim(),
+      status: 'open',
+      image_url: imageUrl,
+    });
+  } catch (error) {
+    cleanupUpload();
+    console.error('Create issue error:', error);
+    res.status(500).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });
+  }
 });
 
 router.patch("/:id/status",
