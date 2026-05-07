@@ -167,7 +167,7 @@ export default function DashboardPage() {
                   </div>
                   <div>
                     <dt>Votes</dt>
-                    <dd>{issue.vote_count || 0}</dd>
+                    <dd>{issue.votes ?? issue.vote_count ?? 0}</dd>
                   </div>
                 </dl>
               </article>

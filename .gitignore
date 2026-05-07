@@ -10,6 +10,8 @@ dist/
 # Uploaded files
 uploads/*
 !uploads/.gitkeep
+backend/uploads/*
+!backend/uploads/.gitkeep
 
 # OS artifacts
 .DS_Store

@@ -35,22 +35,22 @@ router.get('/users', verifyToken, roleGuard(['admin']), async (req, res) => {
 
 // PATCH /api/admin/users/:id/role - update user role (admin only)
 router.patch('/users/:id/role', verifyToken, roleGuard(['admin']), async (req, res) => {
+  const userId = Number(req.params.id);
+  const { role } = req.body;
+
+  if (!Number.isInteger(userId) || userId <= 0) {
+    return res.status(400).json({ error: 'Invalid user id' });
+  }
+
+  if (!VALID_ROLES.includes(role)) {
+    return res.status(400).json({ error: 'Role must be one of: user, staff, admin' });
+  }
+
+  if (userId === req.user.id) {
+    return res.status(400).json({ error: 'Cannot change your own role' });
+  }
+
   try {
-    const userId = Number(req.params.id);
-    const { role } = req.body;
-
-    if (!Number.isInteger(userId) || userId <= 0) {
-      return res.status(400).json({ error: 'Invalid user id' });
-    }
-
-    if (!VALID_ROLES.includes(role)) {
-      return res.status(400).json({ error: 'Role must be one of: user, staff, admin' });
-    }
-
-    if (userId === req.user.id) {
-      return res.status(400).json({ error: 'Cannot change your own role' });
-    }
-
     const [result] = await pool.query(
       'UPDATE users SET role = ? WHERE id = ?',
       [role, userId]
@@ -69,7 +69,7 @@ router.patch('/users/:id/role', verifyToken, roleGuard(['admin']), async (req, r
       [userId]
     );
 
-    res.json({ user });
+    res.json({ message: 'Role updated', userId, role, user });
   } catch (error) {
     console.error('Update user role error:', error);
     res.status(500).json({ error: 'Failed to update user role' });
