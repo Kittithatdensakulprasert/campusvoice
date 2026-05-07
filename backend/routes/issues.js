@@ -43,16 +43,21 @@ function getPagination(query) {
   return { limit, offset };
 }
 
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 function buildFilter({ category, status, keyword }) {
   const filter = {};
   if (category) filter.category = category;
   if (status) filter.status = status;
   if (keyword) {
+    const safe = escapeRegex(keyword);
     filter.$or = [
-      { title:       { $regex: keyword, $options: 'i' } },
-      { description: { $regex: keyword, $options: 'i' } },
-      { location:    { $regex: keyword, $options: 'i' } },
-      { category:    { $regex: keyword, $options: 'i' } },
+      { title:       { $regex: safe, $options: 'i' } },
+      { description: { $regex: safe, $options: 'i' } },
+      { location:    { $regex: safe, $options: 'i' } },
+      { category:    { $regex: safe, $options: 'i' } },
     ];
   }
   return filter;

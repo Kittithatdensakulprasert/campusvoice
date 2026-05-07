@@ -87,15 +87,17 @@ const Pagination = ({
 
         <div className="pagination-numbers">
           {visiblePages.map((page, index) => (
-            <button
-              key={index}
-              className={`pagination-number ${currentPage === page ? 'pagination-number--active' : ''}`}
-              onClick={() => handlePageSelect(page)}
-              aria-label={`หน้า ${page}`}
-              aria-current={currentPage === page}
-            >
-              {page === '...' ? '...' : page}
-            </button>
+            page === '...'
+              ? <span key={index} className="pagination-dots">...</span>
+              : <button
+                  key={index}
+                  className={`pagination-number ${currentPage === page ? 'pagination-number--active' : ''}`}
+                  onClick={() => handlePageSelect(page)}
+                  aria-label={`หน้า ${page}`}
+                  aria-current={currentPage === page}
+                >
+                  {page}
+                </button>
           ))}
         </div>
 

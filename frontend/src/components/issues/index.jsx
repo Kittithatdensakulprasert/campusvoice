@@ -310,6 +310,7 @@ export function IssueListPage() {
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
+              totalItems={filteredIssues.length}
               onPageChange={handlePageChange}
               itemsPerPage={itemsPerPage}
               onItemsPerPageChange={handleItemsPerPageChange}
@@ -328,7 +329,7 @@ export function IssueDetailPage() {
   const [voteCount, setVoteCount] = useState(0);
   const [hasVoted, setHasVoted] = useState(false);
 
-  const issueId = Number(id);
+  const issueId = id;
 
   const fetchIssueDetail = useCallback(async () => {
     try {
