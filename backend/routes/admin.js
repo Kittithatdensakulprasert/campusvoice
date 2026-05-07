@@ -8,23 +8,30 @@ const roleGuard = require('../middleware/roleGuard');
 
 const STATUS_ORDER = ['open', 'in_progress', 'resolved', 'closed'];
 const ALLOWED_ROLES = ['user', 'staff', 'admin'];
+const ADMIN_USER_FIELDS = 'email name role avatar_url created_at updated_at';
 
-// GET /api/admin/users — list all users (admin only)
+function serializeUser(user) {
+  if (!user) return null;
+  const id = user._id?.toString?.() || user.id;
+  return { ...user, id };
+}
+
+// GET /api/admin/users - list all users (admin only)
 router.get('/users', verifyToken, roleGuard(['admin']), async (req, res) => {
   try {
     const users = await User.find({})
-      .select('email name role created_at')
+      .select(ADMIN_USER_FIELDS)
       .sort({ created_at: -1 })
       .lean();
 
-    res.json({ users: users.map(u => ({ ...u, id: u._id })) });
+    res.json({ users: users.map(serializeUser) });
   } catch (error) {
     console.error('List users error:', error);
     res.status(500).json({ error: 'Failed to load users' });
   }
 });
 
-// PATCH /api/admin/users/:id/role — update user role (admin only)
+// PATCH /api/admin/users/:id/role - update user role (admin only)
 router.patch('/users/:id/role', verifyToken, roleGuard(['admin']), async (req, res) => {
   const { id } = req.params;
   const { role } = req.body;
@@ -34,22 +41,24 @@ router.patch('/users/:id/role', verifyToken, roleGuard(['admin']), async (req, r
   }
 
   if (!ALLOWED_ROLES.includes(role)) {
-    return res.status(400).json({ error: 'Invalid role' });
+    return res.status(400).json({ error: 'Role must be one of: user, staff, admin' });
   }
 
   if (id === req.user.id) {
-    return res.status(400).json({ error: 'ไม่สามารถเปลี่ยน role ของตัวเองได้' });
+    return res.status(400).json({ error: 'Cannot change your own role' });
   }
 
   try {
-    const user = await User.findByIdAndUpdate(id, { role }, { new: true });
+    const user = await User.findByIdAndUpdate(id, { role }, { new: true })
+      .select(ADMIN_USER_FIELDS)
+      .lean();
 
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    res.json({ message: 'Role updated', userId: id, role });
+    res.json({ message: 'Role updated', userId: id, role, user: serializeUser(user) });
   } catch (error) {
-    console.error('Update role error:', error);
-    res.status(500).json({ error: 'Failed to update role' });
+    console.error('Update user role error:', error);
+    res.status(500).json({ error: 'Failed to update user role' });
   }
 });
 
