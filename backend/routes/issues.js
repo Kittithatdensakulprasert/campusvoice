@@ -6,6 +6,7 @@ const path = require('path');
 const multer = require('multer');
 const pool = require('../db');
 const verifyToken = require('../middleware/verifyToken');
+const roleGuard = require('../middleware/roleGuard');
 
 const VALID_CATEGORIES = ['ห้องเรียน', 'ห้องน้ำ', 'อาหาร', 'Wi-Fi', 'ความปลอดภัย', 'อื่นๆ'];
 
@@ -256,11 +257,39 @@ router.post('/', verifyToken, (req, res, next) => {
   }
 });
 
-// PATCH /api/issues/:id/status — update issue status (staff/admin only)
-router.patch('/:id/status', async (req, res) => {
-  // TODO: Feature 6 — verifyToken + roleGuard(['admin', 'staff'])
-  res.status(501).json({ message: 'Update issue status — not yet implemented' });
-});
+router.patch("/:id/status",
+  verifyToken,
+  roleGuard(["admin", "staff"]),
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+      const issueId = Number(id);
+      const allowed = ["open", "in_progress", "resolved", "closed"];
+
+      if (!Number.isInteger(issueId) || issueId <= 0) {
+        return res.status(400).json({ message: "Invalid issue id" });
+      }
+
+      if (!allowed.includes(status)) {
+        return res.status(400).json({ message: "Invalid status" });
+      }
+
+      const [result] = await pool.query(
+        "UPDATE issues SET status = ? WHERE id = ?",
+        [status, issueId]
+      );
+
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ message: "Issue not found" });
+      }
+
+      return res.json({ message: "Status updated", issueId: id, status });
+    } catch (err) {
+      return res.status(500).json({ message: "Server error" });
+    }
+  }
+);
 
 // DELETE /api/issues/:id — delete issue (admin only)
 router.delete('/:id', async (req, res) => {

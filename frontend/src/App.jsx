@@ -1,5 +1,6 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
+import AdminPage from './components/admin/AdminPage';
 import { LoginPage, RegisterPage } from './components/auth';
 import DashboardPage from './components/admin/DashboardPage';
 import { IssueDetailPage, IssueListPage } from './components/issues';
@@ -24,7 +25,7 @@ function App() {
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route
           path="/admin"
-          element={<div style={{ padding: '2rem' }}>Admin Panel — Feature 6 (mark)</div>}
+          element={<AdminPage />}
         />
         <Route
           path="*"
