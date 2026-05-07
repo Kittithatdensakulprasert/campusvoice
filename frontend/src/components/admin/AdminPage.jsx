@@ -6,7 +6,7 @@ import IssueTable from './IssueTable';
 export default function AdminPage() {
   const { loading, user, isStaff } = useAuth();
   const [issues, setIssues] = useState([]);
-  const [fetching, setFetching] = useState(true);
+  const [fetching, setFetching] = useState(false);
   const [updatingId, setUpdatingId] = useState(null);
   const [error, setError] = useState('');
 
@@ -26,8 +26,9 @@ export default function AdminPage() {
   };
 
   useEffect(() => {
+    if (loading || !user || !isStaff) return;
     fetchIssues();
-  }, []);
+  }, [loading, user, isStaff]);
 
   const handleChangeStatus = async (id, nextStatus) => {
     try {
