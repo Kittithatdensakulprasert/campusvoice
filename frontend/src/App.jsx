@@ -5,9 +5,6 @@ import { LoginPage, RegisterPage } from './components/auth';
 import DashboardPage from './components/admin/DashboardPage';
 import { IssueDetailPage, IssueListPage } from './components/issues';
 import ReportIssuePage from './components/issues/ReportIssuePage';
-import Pagination from './components/common/Pagination';
-import VoteButton from './components/votes/VoteButton';
-import CommentList from './components/comments/CommentList';
 import { useAuth } from './context/AuthContext';
 
 function ProtectedRoute({ children, requireStaff = false }) {
@@ -33,7 +30,7 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route
           path="/dashboard"
-          element={<ProtectedRoute><DashboardPage /></ProtectedRoute>}
+          element={<ProtectedRoute requireStaff><DashboardPage /></ProtectedRoute>}
         />
         <Route
           path="/admin"

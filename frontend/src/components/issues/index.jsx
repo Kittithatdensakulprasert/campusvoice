@@ -323,7 +323,9 @@ export function IssueListPage() {
 
 export function IssueDetailPage() {
   const { id } = useParams();
+  const { isAuthenticated } = useAuth();
   const [issue, setIssue] = useState(null);
+  const [voted, setVoted] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const fetchIssueDetail = useCallback(async () => {
@@ -339,6 +341,27 @@ export function IssueDetailPage() {
     }
   }, [id]);
 
+  // เช็ค voted state: ลอง DELETE vote ก่อน ถ้า 404 = ยังไม่โหวต, ถ้า 200 = เคยโหวต (แล้ว unvote ไป)
+  // วิธีที่ถูกต้องคือ backend ควรมี GET endpoint แต่ใช้ 409 probe แบบนี้ไปก่อน
+  useEffect(() => {
+    if (!isAuthenticated || !id) return;
+    // ใช้ GET issues/:id แล้วเทียบกับ voted จาก backend ไม่ได้ ให้ใช้ POST probe
+    // POST /votes/:id — ถ้าสำเร็จ (201) = ยังไม่เคยโหวต → ลบทิ้งคืน
+    // ถ้าได้ 409 = เคยโหวตแล้ว
+    let cancelled = false;
+    api.post(`/votes/${id}`)
+      .then(() => {
+        if (!cancelled) setVoted(false);
+        return api.delete(`/votes/${id}`);
+      })
+      .catch((err) => {
+        if (!cancelled && err.response?.status === 409) {
+          setVoted(true);
+        }
+      });
+    return () => { cancelled = true; };
+  }, [id, isAuthenticated]);
+
   useEffect(() => {
     fetchIssueDetail();
   }, [fetchIssueDetail]);
@@ -352,6 +375,7 @@ export function IssueDetailPage() {
   }
 
   const statusLabel = getStatusLabel(issue.status);
+  const imageUrl = issue.image_url || null;
 
   return (
     <main className="issue-layout">
@@ -363,7 +387,11 @@ export function IssueDetailPage() {
             <span className={`status-badge ${getStatusClass(issue.status)}`}>
               {statusLabel}
             </span>
-            <span className="issue-votes">▲ {getIssueVoteCount(issue)}</span>
+            <VoteButton
+              issueId={Number(id)}
+              voteCount={getIssueVoteCount(issue)}
+              voted={voted}
+            />
           </div>
 
           <h1>{issue.title || UNTITLED_ISSUE}</h1>
@@ -378,14 +406,16 @@ export function IssueDetailPage() {
             {issue.description || EMPTY_VALUE}
           </p>
 
-          {issue.image_url ? (
+          {imageUrl ? (
             <img
               className="issue-detail-image"
-              src={issue.image_url}
+              src={imageUrl}
               alt={issue.title ? `Reported issue: ${issue.title}` : 'Reported issue'}
             />
           ) : null}
         </article>
+
+        <CommentList issueId={Number(id)} />
       </section>
     </main>
   );
