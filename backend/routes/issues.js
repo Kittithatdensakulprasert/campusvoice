@@ -245,9 +245,26 @@ router.patch('/:id/status', verifyToken, roleGuard(['admin', 'staff']), async (r
   }
 });
 
-// DELETE /api/issues/:id
-router.delete('/:id', async (req, res) => {
-  res.status(501).json({ message: 'Delete issue — not yet implemented' });
+// DELETE /api/issues/:id — delete issue (admin only)
+router.delete('/:id', verifyToken, roleGuard(['admin']), async (req, res) => {
+  if (!mongoose.isValidObjectId(req.params.id)) {
+    return res.status(400).json({ error: 'Invalid issue id' });
+  }
+
+  try {
+    const issue = await Issue.findByIdAndDelete(req.params.id);
+
+    if (!issue) return res.status(404).json({ error: 'Issue not found' });
+
+    if (issue.image_url) {
+      fs.unlink(path.join(__dirname, '..', issue.image_url), () => {});
+    }
+
+    res.json({ message: 'Issue deleted', issueId: req.params.id });
+  } catch (error) {
+    console.error('Delete issue error:', error);
+    res.status(500).json({ error: 'Failed to delete issue' });
+  }
 });
 
 module.exports = router;
