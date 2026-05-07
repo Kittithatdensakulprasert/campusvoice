@@ -1,44 +1,31 @@
 const express = require('express');
 const router = express.Router();
-const pool = require('../db');
+const mongoose = require('mongoose');
+const Issue = require('../models/Issue');
+const Vote = require('../models/Vote');
 const verifyToken = require('../middleware/verifyToken');
 
-// POST /api/votes/:issueId — toggle vote (1 user = 1 vote)
+function validId(id) {
+  return mongoose.isValidObjectId(id);
+}
+
+// POST /api/votes/:issueId — toggle vote
 router.post('/:issueId', verifyToken, async (req, res) => {
-  const issueId = parseInt(req.params.issueId);
-  if (isNaN(issueId)) return res.status(400).json({ error: 'Invalid issue ID' });
+  const { issueId } = req.params;
+  if (!validId(issueId)) return res.status(400).json({ error: 'Invalid issue ID' });
   const userId = req.user.id;
 
   try {
-    // ตรวจว่า issue มีอยู่จริง
-    const [issues] = await pool.query('SELECT id FROM issues WHERE id = ?', [issueId]);
-    if (issues.length === 0) {
-      return res.status(404).json({ error: 'Issue not found' });
-    }
+    const issue = await Issue.findById(issueId);
+    if (!issue) return res.status(404).json({ error: 'Issue not found' });
 
-    // ตรวจว่า user โหวตไปแล้วหรือยัง
-    const [existing] = await pool.query(
-      'SELECT id FROM votes WHERE user_id = ? AND issue_id = ?',
-      [userId, issueId]
-    );
+    const existing = await Vote.findOne({ user_id: userId, issue_id: issueId });
+    if (existing) return res.status(409).json({ error: 'Already voted', voted: true });
 
-    if (existing.length > 0) {
-      return res.status(409).json({ error: 'Already voted', voted: true });
-    }
+    await Vote.create({ user_id: userId, issue_id: issueId });
 
-    // เพิ่ม vote
-    await pool.query(
-      'INSERT INTO votes (user_id, issue_id) VALUES (?, ?)',
-      [userId, issueId]
-    );
-
-    // นับ vote ทั้งหมดของ issue นั้น
-    const [[{ count }]] = await pool.query(
-      'SELECT COUNT(*) AS count FROM votes WHERE issue_id = ?',
-      [issueId]
-    );
-
-    res.status(201).json({ message: 'Voted successfully', voteCount: count, voted: true });
+    const voteCount = await Vote.countDocuments({ issue_id: issueId });
+    res.status(201).json({ message: 'Voted successfully', voteCount, voted: true });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });
@@ -47,26 +34,16 @@ router.post('/:issueId', verifyToken, async (req, res) => {
 
 // DELETE /api/votes/:issueId — ยกเลิก vote
 router.delete('/:issueId', verifyToken, async (req, res) => {
-  const issueId = parseInt(req.params.issueId);
-  if (isNaN(issueId)) return res.status(400).json({ error: 'Invalid issue ID' });
+  const { issueId } = req.params;
+  if (!validId(issueId)) return res.status(400).json({ error: 'Invalid issue ID' });
   const userId = req.user.id;
 
   try {
-    const [result] = await pool.query(
-      'DELETE FROM votes WHERE user_id = ? AND issue_id = ?',
-      [userId, issueId]
-    );
+    const result = await Vote.deleteOne({ user_id: userId, issue_id: issueId });
+    if (result.deletedCount === 0) return res.status(404).json({ error: 'Vote not found' });
 
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: 'Vote not found' });
-    }
-
-    const [[{ count }]] = await pool.query(
-      'SELECT COUNT(*) AS count FROM votes WHERE issue_id = ?',
-      [issueId]
-    );
-
-    res.json({ message: 'Vote removed', voteCount: count, voted: false });
+    const voteCount = await Vote.countDocuments({ issue_id: issueId });
+    res.json({ message: 'Vote removed', voteCount, voted: false });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });
