@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
+import Pagination from '../common/Pagination';
 
 const ISSUE_CATEGORIES = [
   'ห้องเรียน',
@@ -220,6 +221,8 @@ export function IssueListPage() {
   const [status, setStatus] = useState('');
   const [searchText, setSearchText] = useState('');
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const fetchIssues = useCallback(async () => {
     try {
@@ -258,6 +261,17 @@ export function IssueListPage() {
     });
   }, [issues, searchText]);
 
+  const totalPages = Math.ceil(filteredIssues.length / itemsPerPage);
+  const handlePageChange = useCallback((page) => {
+    setCurrentPage(page);
+    window.scrollTo(0, 0);
+  }, []);
+
+  const handleItemsPerPageChange = useCallback((newItemsPerPage) => {
+    setItemsPerPage(newItemsPerPage);
+    setCurrentPage(1);
+  }, []);
+
   return (
     <main className="issue-layout">
       <IssueLayoutNav />
@@ -272,17 +286,33 @@ export function IssueListPage() {
           sort={sort}
           onSortChange={setSort}
         />
-
         {loading ? (
-          <p className="issue-message">Loading issues...</p>
+          <div className="issue-loading">
+            <div className="loading-spinner">
+              <svg className="spinning-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1 1.06-1.061l-8.689-8.69a2.25 2.25 0 0 0-3.182 0l-8.69 8.69a2.25 2.25 0 0 .091-.086L12 5.432Z"></path>
+              </svg>
+            </div>
+            <p>กำลังดำเนินการ...</p>
+          </div>
         ) : filteredIssues.length === 0 ? (
-          <p className="issue-message">No issues found.</p>
+          <p className="issue-message">ไม่พบปัญหาที่ค้นหา</p>
         ) : (
-          <section className="issue-grid" aria-label="Issue list">
-            {filteredIssues.map((issue) => (
-              <IssueCard key={issue.id} issue={issue} />
-            ))}
-          </section>
+          <>
+            <section className="issue-grid" aria-label="Issue list">
+              {filteredIssues.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((issue) => (
+                <IssueCard key={issue.id} issue={issue} />
+              ))}
+            </section>
+
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+              itemsPerPage={itemsPerPage}
+              onItemsPerPageChange={handleItemsPerPageChange}
+            />
+          </>
         )}
       </section>
     </main>
