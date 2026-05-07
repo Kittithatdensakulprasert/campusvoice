@@ -293,16 +293,21 @@ export function IssueListPage() {
 
 export function IssueDetailPage() {
   const { id } = useParams();
-  const { isAuthenticated } = useAuth();
   const [issue, setIssue] = useState(null);
-  const [voted, setVoted] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [voteCount, setVoteCount] = useState(0);
+  const [hasVoted, setHasVoted] = useState(false);
+
+  const issueId = Number(id);
 
   const fetchIssueDetail = useCallback(async () => {
     try {
       setLoading(true);
       const res = await api.get(`/issues/${id}`);
-      setIssue(res.data);
+      const issueData = res.data;
+      setIssue(issueData);
+      setVoteCount(getIssueVoteCount(issueData));
+      setHasVoted(false);
     } catch (err) {
       console.error(err);
       setIssue(null);
@@ -310,27 +315,6 @@ export function IssueDetailPage() {
       setLoading(false);
     }
   }, [id]);
-
-  // เช็ค voted state: ลอง DELETE vote ก่อน ถ้า 404 = ยังไม่โหวต, ถ้า 200 = เคยโหวต (แล้ว unvote ไป)
-  // วิธีที่ถูกต้องคือ backend ควรมี GET endpoint แต่ใช้ 409 probe แบบนี้ไปก่อน
-  useEffect(() => {
-    if (!isAuthenticated || !id) return;
-    // ใช้ GET issues/:id แล้วเทียบกับ voted จาก backend ไม่ได้ ให้ใช้ POST probe
-    // POST /votes/:id — ถ้าสำเร็จ (201) = ยังไม่เคยโหวต → ลบทิ้งคืน
-    // ถ้าได้ 409 = เคยโหวตแล้ว
-    let cancelled = false;
-    api.post(`/votes/${id}`)
-      .then(() => {
-        if (!cancelled) setVoted(false);
-        return api.delete(`/votes/${id}`);
-      })
-      .catch((err) => {
-        if (!cancelled && err.response?.status === 409) {
-          setVoted(true);
-        }
-      });
-    return () => { cancelled = true; };
-  }, [id, isAuthenticated]);
 
   useEffect(() => {
     fetchIssueDetail();
@@ -358,9 +342,13 @@ export function IssueDetailPage() {
               {statusLabel}
             </span>
             <VoteButton
-              issueId={Number(id)}
-              voteCount={getIssueVoteCount(issue)}
-              voted={voted}
+              issueId={issueId}
+              voteCount={voteCount}
+              voted={hasVoted}
+              onChange={({ voted, voteCount: nextCount }) => {
+                setHasVoted(voted);
+                setVoteCount(nextCount);
+              }}
             />
           </div>
 
@@ -383,9 +371,10 @@ export function IssueDetailPage() {
               alt={issue.title ? `Reported issue: ${issue.title}` : 'Reported issue'}
             />
           ) : null}
+
         </article>
 
-        <CommentList issueId={Number(id)} />
+        <CommentList issueId={issueId} />
       </section>
     </main>
   );
