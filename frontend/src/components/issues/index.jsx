@@ -3,6 +3,8 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
 import Pagination from '../common/Pagination';
+import VoteButton from '../votes/VoteButton';
+import CommentList from '../comments/CommentList';
 
 const ISSUE_CATEGORIES = [
   'ห้องเรียน',
