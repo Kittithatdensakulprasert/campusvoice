@@ -16,16 +16,8 @@ const ROLE_LABELS = ROLE_OPTIONS.reduce((labels, role) => {
 }, {});
 
 function getUsersErrorMessage(err) {
-  if (err.response?.status === 401) {
-    return 'กรุณาเข้าสู่ระบบด้วยบัญชี admin';
-  }
-
   if (err.response?.status === 403) {
     return 'เฉพาะ admin เท่านั้นที่ดูและเปลี่ยน role ผู้ใช้ได้';
-  }
-
-  if (err.response?.status === 501) {
-    return 'Backend endpoint สำหรับจัดการ users ยังไม่พร้อมใช้งาน';
   }
 
   return err.response?.data?.message || 'โหลดรายชื่อผู้ใช้ไม่สำเร็จ';
@@ -187,7 +179,11 @@ export default function AdminPage() {
         prev.map((item) => (item.id === targetUser.id ? { ...item, role: nextRole } : item))
       );
     } catch (err) {
-      window.alert(err.response?.data?.message || 'เปลี่ยน role ไม่สำเร็จ');
+      // revert select กลับ role เดิม
+      setUsers((prev) =>
+        prev.map((item) => (item.id === targetUser.id ? { ...item, role: currentRole } : item))
+      );
+      window.alert(err.response?.data?.error || err.response?.data?.message || 'เปลี่ยน role ไม่สำเร็จ');
     } finally {
       setUpdatingUserId(null);
     }
