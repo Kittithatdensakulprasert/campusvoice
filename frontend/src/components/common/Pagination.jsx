@@ -5,11 +5,11 @@ const Pagination = ({
   totalPages, 
   onPageChange, 
   itemsPerPage = 10,
-  showPageInfo = true 
+  showPageInfo = true,
+  totalItems
 }) => {
   const startItem = (currentPage - 1) * itemsPerPage + 1;
-  const endItem = Math.min(currentPage * itemsPerPage, totalPages * itemsPerPage);
-  const totalItems = totalPages * itemsPerPage;
+  const endItem = Math.min(currentPage * itemsPerPage, totalItems || totalPages * itemsPerPage);
 
   const handlePrevious = () => {
     if (currentPage > 1) {
@@ -27,24 +27,28 @@ const Pagination = ({
     onPageChange(page);
   };
 
+  const handleItemsPerPageChange = (newItemsPerPage) => {
+    onPageChange(1, newItemsPerPage);
+  };
+
   // Generate page numbers to show
   const getVisiblePages = () => {
     const delta = 2;
-    const range = [];
-    let rangeWithDots = [];
-    let l;
+    const rangeWithDots = [];
+    let dotsAdded = false;
 
     for (let i = 1; i <= totalPages; i++) {
       if (i === 1 || i === totalPages || (i === currentPage - delta) || (i === currentPage + delta)) {
         rangeWithDots.push(i);
-      } else if (i > 1 && i < currentPage - delta) {
-        if (!l) l = i - 1;
+      } else if (i > 1 && i < currentPage - delta && !dotsAdded) {
         rangeWithDots.push('...');
-        rangeWithDots.push(i);
-      } else if (i > currentPage + delta && i < totalPages) {
-        if (!l) l = i - 1;
+        dotsAdded = true;
+      } else if (i > currentPage + delta && i < totalPages && !dotsAdded) {
         rangeWithDots.push('...');
-        rangeWithDots.push(i);
+        dotsAdded = true;
+      } else if (dotsAdded) {
+        // Skip pages when dots are already shown
+        continue;
       } else {
         rangeWithDots.push(i);
       }
