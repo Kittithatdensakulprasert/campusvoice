@@ -13,11 +13,10 @@ export default function AdminPage() {
   const fetchIssues = async () => {
     try {
       setFetching(true);
-      setError((prev) => (issues.length ? prev : ''));
+      setError('');
       const { data } = await api.get('/issues');
       const list = Array.isArray(data) ? data : data.issues || [];
       setIssues(list);
-      setError('');
     } catch (err) {
       setError(err.response?.data?.message || 'โหลดรายการปัญหาไม่สำเร็จ');
     } finally {

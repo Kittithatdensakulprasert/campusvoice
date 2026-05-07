@@ -179,7 +179,12 @@ router.patch("/:id/status",
     try {
       const { id } = req.params;
       const { status } = req.body;
+      const issueId = Number(id);
       const allowed = ["open", "in_progress", "resolved", "closed"];
+
+      if (!Number.isInteger(issueId) || issueId <= 0) {
+        return res.status(400).json({ message: "Invalid issue id" });
+      }
 
       if (!allowed.includes(status)) {
         return res.status(400).json({ message: "Invalid status" });
@@ -187,7 +192,7 @@ router.patch("/:id/status",
 
       const [result] = await pool.query(
         "UPDATE issues SET status = ? WHERE id = ?",
-        [status, id]
+        [status, issueId]
       );
 
       if (result.affectedRows === 0) {
