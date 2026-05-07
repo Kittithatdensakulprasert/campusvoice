@@ -5,6 +5,15 @@ import { LoginPage, RegisterPage } from './components/auth';
 import DashboardPage from './components/admin/DashboardPage';
 import { IssueDetailPage, IssueListPage } from './components/issues';
 import ReportIssuePage from './components/issues/ReportIssuePage';
+import { useAuth } from './context/AuthContext';
+
+function ProtectedRoute({ children, requireStaff = false }) {
+  const { isAuthenticated, isStaff, loading } = useAuth();
+  if (loading) return null;
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (requireStaff && !isStaff) return <Navigate to="/issues" replace />;
+  return children;
+}
 
 function App() {
   return (
@@ -13,19 +22,19 @@ function App() {
         <Route path="/" element={<Navigate to="/issues" replace />} />
         <Route path="/issues" element={<IssueListPage />} />
         <Route path="/issues/:id" element={<IssueDetailPage />} />
-        <Route path="/report" element={<ReportIssuePage />} />
         <Route
-          path="/login"
-          element={<LoginPage />}
+          path="/report"
+          element={<ProtectedRoute><ReportIssuePage /></ProtectedRoute>}
         />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
         <Route
-          path="/register"
-          element={<RegisterPage />}
+          path="/dashboard"
+          element={<ProtectedRoute requireStaff><DashboardPage /></ProtectedRoute>}
         />
-        <Route path="/dashboard" element={<DashboardPage />} />
         <Route
           path="/admin"
-          element={<AdminPage />}
+          element={<ProtectedRoute requireStaff><AdminPage /></ProtectedRoute>}
         />
         <Route
           path="*"
