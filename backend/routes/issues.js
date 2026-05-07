@@ -292,9 +292,35 @@ router.patch("/:id/status",
 );
 
 // DELETE /api/issues/:id — delete issue (admin only)
-router.delete('/:id', async (req, res) => {
-  // TODO: Feature 6 — verifyToken + roleGuard(['admin'])
-  res.status(501).json({ message: 'Delete issue — not yet implemented' });
+router.delete('/:id', verifyToken, roleGuard(['admin']), async (req, res) => {
+  const issueId = Number(req.params.id);
+
+  if (!Number.isInteger(issueId) || issueId <= 0) {
+    return res.status(400).json({ error: 'Invalid issue id' });
+  }
+
+  try {
+    // ดึง image_url ก่อนลบ เพื่อลบไฟล์ด้วย
+    const [issues] = await pool.query('SELECT image_url FROM issues WHERE id = ?', [issueId]);
+
+    if (issues.length === 0) {
+      return res.status(404).json({ error: 'Issue not found' });
+    }
+
+    await pool.query('DELETE FROM issues WHERE id = ?', [issueId]);
+
+    // ลบไฟล์รูปถ้ามี
+    const imageUrl = issues[0].image_url;
+    if (imageUrl) {
+      const filePath = path.join(__dirname, '..', imageUrl);
+      fs.unlink(filePath, () => {});
+    }
+
+    res.json({ message: 'Issue deleted', issueId });
+  } catch (error) {
+    console.error('Delete issue error:', error);
+    res.status(500).json({ error: 'Failed to delete issue' });
+  }
 });
 
 module.exports = router;
