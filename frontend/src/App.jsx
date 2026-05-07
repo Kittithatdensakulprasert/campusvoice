@@ -5,6 +5,8 @@ import { LoginPage, RegisterPage } from './components/auth';
 import DashboardPage from './components/admin/DashboardPage';
 import { IssueDetailPage, IssueListPage } from './components/issues';
 import ReportIssuePage from './components/issues/ReportIssuePage';
+import VoteButton from './components/votes/VoteButton';
+import CommentList from './components/comments/CommentList';
 
 function App() {
   return (
