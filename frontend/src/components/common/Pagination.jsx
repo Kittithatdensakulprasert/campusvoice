@@ -1,10 +1,11 @@
 import React from 'react';
 
-const Pagination = ({ 
-  currentPage, 
-  totalPages, 
-  onPageChange, 
+const Pagination = ({
+  currentPage,
+  totalPages,
+  onPageChange,
   itemsPerPage = 10,
+  onItemsPerPageChange,
   showPageInfo = true,
   totalItems
 }) => {
@@ -28,29 +29,32 @@ const Pagination = ({
   };
 
   const handleItemsPerPageChange = (newItemsPerPage) => {
-    onPageChange(1, newItemsPerPage);
+    if (onItemsPerPageChange) {
+      onItemsPerPageChange(newItemsPerPage);
+    } else {
+      onPageChange(1);
+    }
   };
 
   // Generate page numbers to show
   const getVisiblePages = () => {
     const delta = 2;
     const rangeWithDots = [];
-    let dotsAdded = false;
+    let leftDotsAdded = false;
+    let rightDotsAdded = false;
 
     for (let i = 1; i <= totalPages; i++) {
-      if (i === 1 || i === totalPages || (i === currentPage - delta) || (i === currentPage + delta)) {
+      const isEdge = i === 1 || i === totalPages;
+      const isNearCurrent = i >= currentPage - delta && i <= currentPage + delta;
+
+      if (isEdge || isNearCurrent) {
         rangeWithDots.push(i);
-      } else if (i > 1 && i < currentPage - delta && !dotsAdded) {
+      } else if (i < currentPage - delta && !leftDotsAdded) {
         rangeWithDots.push('...');
-        dotsAdded = true;
-      } else if (i > currentPage + delta && i < totalPages && !dotsAdded) {
+        leftDotsAdded = true;
+      } else if (i > currentPage + delta && !rightDotsAdded) {
         rangeWithDots.push('...');
-        dotsAdded = true;
-      } else if (dotsAdded) {
-        // Skip pages when dots are already shown
-        continue;
-      } else {
-        rangeWithDots.push(i);
+        rightDotsAdded = true;
       }
     }
 
@@ -113,7 +117,7 @@ const Pagination = ({
           <select 
             className="pagination-select"
             value={itemsPerPage}
-            onChange={(e) => onPageChange(1, parseInt(e.target.value))}
+            onChange={(e) => handleItemsPerPageChange(parseInt(e.target.value))}
             aria-label="จำนวนต่อหน้า"
           >
             <option value={5}>5</option>

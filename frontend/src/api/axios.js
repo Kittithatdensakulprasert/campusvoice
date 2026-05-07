@@ -30,7 +30,7 @@ api.interceptors.response.use(
       window.location.href = '/login';
       return Promise.reject({
         ...error,
-        userMessage: 'กรุณากรอกใหนระบบอีกครั้ง กรุณาเข้าใช้งานใหม่'
+        userMessage: 'กรุณาเข้าสู่ระบบอีกครั้ง'
       });
     }
 
@@ -54,7 +54,7 @@ api.interceptors.response.use(
     if (error.response?.status === 500) {
       return Promise.reject({
         ...error,
-        userMessage: 'เซิร์เวอร์เซอร์เวอร์ กรุณาลอดใหม่'
+        userMessage: 'เซิร์ฟเวอร์มีปัญหา กรุณาลองใหม่'
       });
     }
 
@@ -62,7 +62,7 @@ api.interceptors.response.use(
     if (error.code === 'ECONNABORTED') {
       return Promise.reject({
         ...error,
-        userMessage: 'การเชื่อมต่อถูกยุด กรุณาลอดใหม่'
+        userMessage: 'การเชื่อมต่อหมดเวลา กรุณาลองใหม่'
       });
     }
 
