@@ -22,7 +22,12 @@ export default function StatusDropdown({ value, onChange, disabled }) {
   };
 
   return (
-    <select value={value} onChange={handleChange} disabled={disabled}>
+    <select
+      className="admin-role-select"
+      value={value}
+      onChange={handleChange}
+      disabled={disabled}
+    >
       {OPTIONS.map((opt) => (
         <option key={opt.value} value={opt.value}>
           {opt.label}

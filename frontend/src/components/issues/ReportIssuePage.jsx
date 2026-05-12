@@ -119,7 +119,7 @@ export default function ReportIssuePage() {
           <h1 className="report-title">ส่งเรื่องสำเร็จ</h1>
           <p className="success-message">ปัญหาของคุณถูกบันทึกแล้ว ทีมงานจะดำเนินการโดยเร็วที่สุด</p>
           <div className="form-actions">
-            <button className="btn-submit" onClick={() => navigate('/')}>กลับหน้าหลัก</button>
+            <button className="btn-submit" onClick={() => navigate('/issues')}>กลับหน้าหลัก</button>
           </div>
         </div>
       </div>
