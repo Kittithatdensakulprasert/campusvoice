@@ -19,7 +19,7 @@ function App() {
   return (
     <div className="app">
       <Routes>
-        <Route path="/" element={<Navigate to="/issues" replace />} />
+        <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/issues" element={<IssueListPage />} />
         <Route path="/issues/:id" element={<IssueDetailPage />} />
         <Route
