@@ -70,7 +70,9 @@ router.get('/stats', verifyToken, roleGuard(['admin', 'staff']), async (req, res
     const byCategory = await Issue.aggregate([
       {
         $group: {
-          _id: { $ifNull: [{ $nullIf: ['$category', ''] }, 'Uncategorized'] },
+          _id: {
+            $cond: [{ $or: [{ $eq: ['$category', null] }, { $eq: ['$category', ''] }] }, 'Uncategorized', '$category']
+          },
           count: { $sum: 1 },
         },
       },
