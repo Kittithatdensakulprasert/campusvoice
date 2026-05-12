@@ -1,96 +1,18 @@
 const express = require('express');
 const router = express.Router();
-const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const multer = require('multer');
 const mongoose = require('mongoose');
 const Issue = require('../models/Issue');
 const Vote = require('../models/Vote');
+const upload = require('../middleware/upload');
 const verifyToken = require('../middleware/verifyToken');
 const roleGuard = require('../middleware/roleGuard');
+const { getPagination, buildFilter, getSortOption, formatIssues } = require('../lib/issueHelpers');
 
 const VALID_CATEGORIES = ['ห้องเรียน', 'ห้องน้ำ', 'อาหาร', 'Wi-Fi', 'ความปลอดภัย', 'อื่นๆ'];
 const VALID_STATUSES = ['open', 'in_progress', 'resolved', 'closed'];
-
-const storage = multer.diskStorage({
-  destination: path.join(__dirname, '..', 'uploads'),
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    cb(null, `${crypto.randomUUID()}${ext}`);
-  },
-});
-
-const upload = multer({
-  storage,
-  limits: { fileSize: 5 * 1024 * 1024 },
-  fileFilter: (req, file, cb) => {
-    const allowed = ['image/jpeg', 'image/png', 'image/webp'];
-    if (allowed.includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error('อัพโหลดได้เฉพาะไฟล์รูปภาพ (JPEG, PNG, WEBP)'));
-    }
-  },
-});
-
-const DEFAULT_LIMIT = 50;
-const MAX_LIMIT = 100;
-
-function getPagination(query) {
-  const limit = Math.min(Math.max(Number(query.limit) || DEFAULT_LIMIT, 1), MAX_LIMIT);
-  const offset = Math.max(Number(query.offset) || 0, 0);
-  return { limit, offset };
-}
-
-function escapeRegex(str) {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-function buildFilter({ category, status, keyword }) {
-  const filter = {};
-  if (category) filter.category = category;
-  if (status) filter.status = status;
-  if (keyword) {
-    const safe = escapeRegex(keyword);
-    filter.$or = [
-      { title:       { $regex: safe, $options: 'i' } },
-      { description: { $regex: safe, $options: 'i' } },
-      { location:    { $regex: safe, $options: 'i' } },
-      { category:    { $regex: safe, $options: 'i' } },
-    ];
-  }
-  return filter;
-}
-
-function getSortOption(sort) {
-  if (sort === 'votes') return null; // handled in aggregation
-  return { created_at: -1 };
-}
-
-async function formatIssues(issues) {
-  const ids = issues.map(i => i._id);
-  const voteCounts = await Vote.aggregate([
-    { $match: { issue_id: { $in: ids } } },
-    { $group: { _id: '$issue_id', count: { $sum: 1 } } },
-  ]);
-  const voteMap = Object.fromEntries(voteCounts.map(v => [v._id.toString(), v.count]));
-
-  return issues.map(issue => ({
-    id:          issue._id,
-    user_id:     issue.user_id?._id ?? issue.user_id,
-    title:       issue.title,
-    description: issue.description,
-    category:    issue.category,
-    location:    issue.location,
-    image_url:   issue.image_url,
-    status:      issue.status,
-    created_at:  issue.created_at,
-    updated_at:  issue.updated_at,
-    author_name: issue.user_id?.name ?? null,
-    votes:       voteMap[issue._id.toString()] || 0,
-  }));
-}
 
 // GET /api/issues
 router.get('/', async (req, res) => {
@@ -157,11 +79,11 @@ router.get('/search', async (req, res) => {
 
 // GET /api/issues/:id
 router.get('/:id', async (req, res) => {
-  try {
-    if (!mongoose.isValidObjectId(req.params.id)) {
-      return res.status(400).json({ error: 'Invalid issue id' });
-    }
+  if (!mongoose.isValidObjectId(req.params.id)) {
+    return res.status(400).json({ error: 'Invalid issue id' });
+  }
 
+  try {
     const issue = await Issue.findById(req.params.id)
       .populate('user_id', 'name')
       .lean();
@@ -170,13 +92,12 @@ router.get('/:id', async (req, res) => {
 
     const [formatted] = await formatIssues([issue]);
 
-    // ตรวจว่า user ที่ login แล้วโหวต issue นี้หรือยัง
     let voted = false;
-    const authHeader = req.headers.authorization;
-    if (authHeader) {
+    if (req.headers.authorization) {
+      // optionally check if the current user has voted
       try {
         const jwt = require('jsonwebtoken');
-        const token = authHeader.split(' ')[1];
+        const token = req.headers.authorization.split(' ')[1];
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         const existing = await Vote.findOne({ user_id: decoded.id, issue_id: issue._id });
         voted = !!existing;
@@ -206,10 +127,10 @@ router.post('/', verifyToken, (req, res, next) => {
     if (req.file) fs.unlink(req.file.path, () => {});
   }
 
-  if (!title || !title.trim()) { cleanupUpload(); return res.status(400).json({ error: 'กรุณากรอกหัวข้อปัญหา' }); }
-  if (title.trim().length > 100) { cleanupUpload(); return res.status(400).json({ error: 'หัวข้อปัญหาต้องไม่เกิน 100 ตัวอักษร' }); }
+  if (!title || !title.trim())            { cleanupUpload(); return res.status(400).json({ error: 'กรุณากรอกหัวข้อปัญหา' }); }
+  if (title.trim().length > 100)          { cleanupUpload(); return res.status(400).json({ error: 'หัวข้อปัญหาต้องไม่เกิน 100 ตัวอักษร' }); }
   if (!description || !description.trim()) { cleanupUpload(); return res.status(400).json({ error: 'กรุณากรอกรายละเอียดปัญหา' }); }
-  if (description.trim().length > 500) { cleanupUpload(); return res.status(400).json({ error: 'รายละเอียดต้องไม่เกิน 500 ตัวอักษร' }); }
+  if (description.trim().length > 500)   { cleanupUpload(); return res.status(400).json({ error: 'รายละเอียดต้องไม่เกิน 500 ตัวอักษร' }); }
   if (category && !VALID_CATEGORIES.includes(category)) { cleanupUpload(); return res.status(400).json({ error: 'หมวดหมู่ไม่ถูกต้อง' }); }
   if (location && location.trim().length > 200) { cleanupUpload(); return res.status(400).json({ error: 'สถานที่ต้องไม่เกิน 200 ตัวอักษร' }); }
 
@@ -240,32 +161,32 @@ router.post('/', verifyToken, (req, res, next) => {
 
 // PATCH /api/issues/:id/status
 router.patch('/:id/status', verifyToken, roleGuard(['admin', 'staff']), async (req, res) => {
+  if (!mongoose.isValidObjectId(req.params.id)) {
+    return res.status(400).json({ error: 'Invalid issue id' });
+  }
+
+  const { status } = req.body;
+  if (!VALID_STATUSES.includes(status)) {
+    return res.status(400).json({ error: 'Invalid status' });
+  }
+
   try {
-    const { status } = req.body;
-
-    if (!mongoose.isValidObjectId(req.params.id)) {
-      return res.status(400).json({ message: 'Invalid issue id' });
-    }
-    if (!VALID_STATUSES.includes(status)) {
-      return res.status(400).json({ message: 'Invalid status' });
-    }
-
     const issue = await Issue.findByIdAndUpdate(
       req.params.id,
       { status },
       { new: true }
     );
 
-    if (!issue) return res.status(404).json({ message: 'Issue not found' });
+    if (!issue) return res.status(404).json({ error: 'Issue not found' });
 
     res.json({ message: 'Status updated', issueId: issue._id, status });
-  } catch (err) {
-    console.error('Update issue status error:', err);
+  } catch (error) {
+    console.error('Update issue status error:', error);
     res.status(500).json({ error: 'Failed to update issue status' });
   }
 });
 
-// DELETE /api/issues/:id — delete issue (admin only)
+// DELETE /api/issues/:id
 router.delete('/:id', verifyToken, roleGuard(['admin']), async (req, res) => {
   if (!mongoose.isValidObjectId(req.params.id)) {
     return res.status(400).json({ error: 'Invalid issue id' });

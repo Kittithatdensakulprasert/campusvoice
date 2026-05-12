@@ -5,13 +5,11 @@ const Issue = require('../models/Issue');
 const Comment = require('../models/Comment');
 const verifyToken = require('../middleware/verifyToken');
 
-function validId(id) {
-  return mongoose.isValidObjectId(id);
-}
-
 // GET /api/comments/:issueId
 router.get('/:issueId', async (req, res) => {
-  if (!validId(req.params.issueId)) return res.status(400).json({ error: 'Invalid issue ID' });
+  if (!mongoose.isValidObjectId(req.params.issueId)) {
+    return res.status(400).json({ error: 'Invalid issue ID' });
+  }
 
   try {
     const comments = await Comment.find({ issue_id: req.params.issueId })
@@ -29,18 +27,22 @@ router.get('/:issueId', async (req, res) => {
         user_name:  c.user_id?.name,
       })),
     });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Internal server error' });
+  } catch (error) {
+    console.error('Get comments error:', error);
+    res.status(500).json({ error: 'Failed to load comments' });
   }
 });
 
 // POST /api/comments/:issueId
 router.post('/:issueId', verifyToken, async (req, res) => {
-  if (!validId(req.params.issueId)) return res.status(400).json({ error: 'Invalid issue ID' });
-  const { body } = req.body;
+  if (!mongoose.isValidObjectId(req.params.issueId)) {
+    return res.status(400).json({ error: 'Invalid issue ID' });
+  }
 
-  if (!body || body.trim() === '') return res.status(400).json({ error: 'Comment body is required' });
+  const { body } = req.body;
+  if (!body || body.trim() === '') {
+    return res.status(400).json({ error: 'Comment body is required' });
+  }
 
   try {
     const issue = await Issue.findById(req.params.issueId);
@@ -64,15 +66,17 @@ router.post('/:issueId', verifyToken, async (req, res) => {
         user_name:  populated.user_id.name,
       },
     });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Internal server error' });
+  } catch (error) {
+    console.error('Create comment error:', error);
+    res.status(500).json({ error: 'Failed to add comment' });
   }
 });
 
 // DELETE /api/comments/:id
 router.delete('/:id', verifyToken, async (req, res) => {
-  if (!validId(req.params.id)) return res.status(400).json({ error: 'Invalid comment ID' });
+  if (!mongoose.isValidObjectId(req.params.id)) {
+    return res.status(400).json({ error: 'Invalid comment ID' });
+  }
 
   try {
     const comment = await Comment.findById(req.params.id);
@@ -84,9 +88,9 @@ router.delete('/:id', verifyToken, async (req, res) => {
 
     await comment.deleteOne();
     res.json({ message: 'Comment deleted' });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Internal server error' });
+  } catch (error) {
+    console.error('Delete comment error:', error);
+    res.status(500).json({ error: 'Failed to delete comment' });
   }
 });
 
