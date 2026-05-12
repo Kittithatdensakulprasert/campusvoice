@@ -117,10 +117,10 @@
 }
 
 .admin-alert {
-  background: #fef2f2;
-  border: 1px solid #fecaca;
+  background: rgba(248, 113, 113, 0.1);
+  border: 1px solid rgba(248, 113, 113, 0.3);
   border-radius: var(--radius-md);
-  color: #991b1b;
+  color: #fca5a5;
   margin: var(--space-5);
   padding: var(--space-3) var(--space-4);
 }
@@ -192,9 +192,9 @@
 }
 
 .admin-user-avatar {
-  background: var(--color-primary-100);
+  background: rgba(59, 130, 246, 0.15);
   border-radius: var(--radius-md);
-  color: var(--color-primary-700);
+  color: var(--color-primary-600);
   display: inline-grid;
   flex: 0 0 auto;
   font-weight: var(--font-weight-bold);
@@ -224,18 +224,18 @@
 }
 
 .admin-role-badge--user {
-  background: #eef2ff;
-  color: #3730a3;
+  background: rgba(99, 102, 241, 0.15);
+  color: #a5b4fc;
 }
 
 .admin-role-badge--staff {
-  background: #ecfeff;
-  color: #0e7490;
+  background: rgba(6, 182, 212, 0.12);
+  color: #67e8f9;
 }
 
 .admin-role-badge--admin {
-  background: #fef3c7;
-  color: #92400e;
+  background: rgba(234, 179, 8, 0.12);
+  color: #fde68a;
 }
 
 .admin-role-select {
@@ -256,7 +256,7 @@
 
 .admin-role-select:focus {
   border-color: var(--color-primary-500);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.16);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.22);
   outline: none;
 }
 

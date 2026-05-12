@@ -20,9 +20,9 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-image:
-    radial-gradient(circle at top left, rgba(34, 211, 238, 0.2), transparent 28rem),
-    radial-gradient(circle at bottom right, rgba(234, 179, 8, 0.18), transparent 22rem),
-    linear-gradient(180deg, #f8fbff 0%, #eaf1fb 100%);
+    radial-gradient(circle at top left, rgba(59, 130, 246, 0.06), transparent 28rem),
+    radial-gradient(circle at bottom right, rgba(34, 211, 238, 0.04), transparent 22rem),
+    linear-gradient(180deg, #0d1117 0%, #0f1420 100%);
 }
 
 a {
@@ -209,9 +209,9 @@ select {
 }
 
 .card {
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--color-surface);
   backdrop-filter: blur(18px);
-  border: 1px solid rgba(255, 255, 255, 0.78);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-2xl);
   box-shadow: var(--shadow-lg);
 }
@@ -234,8 +234,8 @@ select {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.42), transparent 26%),
-    radial-gradient(circle at top right, rgba(34, 211, 238, 0.1), transparent 20rem);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 26%),
+    radial-gradient(circle at top right, rgba(59, 130, 246, 0.06), transparent 20rem);
   pointer-events: none;
 }
 
@@ -283,8 +283,8 @@ select {
   padding: 0.3rem;
   gap: 0.3rem;
   border-radius: var(--radius-full);
-  background: rgba(15, 23, 42, 0.06);
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--color-border);
 }
 
 .auth-switcher__item {
@@ -301,9 +301,9 @@ select {
 }
 
 .auth-switcher__item.is-active {
-  background: var(--color-surface);
-  color: var(--color-primary-700);
-  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+  background: var(--color-surface-muted);
+  color: var(--color-primary-600);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
 }
 
 .auth-form {
@@ -339,7 +339,7 @@ select {
   width: 100%;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  background: rgba(248, 251, 255, 0.88);
+  background: var(--color-surface);
   color: var(--color-text);
   padding: 1.125rem 1.25rem;
   font-size: var(--font-size-md);
@@ -359,7 +359,7 @@ select {
 .textarea:hover,
 .select:hover {
   border-color: var(--color-border-strong);
-  background: rgba(248, 251, 255, 0.95);
+  background: var(--color-surface-muted);
 }
 
 .input:focus,
@@ -367,8 +367,8 @@ select {
 .select:focus {
   outline: none;
   border-color: var(--color-primary-500);
-  box-shadow: 0 0 0 0.25rem rgba(37, 99, 235, 0.14);
-  background: var(--color-surface);
+  box-shadow: 0 0 0 0.25rem rgba(59, 130, 246, 0.18);
+  background: #1a2130;
 }
 
 .input--error {
@@ -548,15 +548,15 @@ select {
 }
 
 .form-message--error {
-  color: #991b1b;
-  background: #fef2f2;
-  border-color: #fecaca;
+  color: #fca5a5;
+  background: rgba(248, 113, 113, 0.1);
+  border-color: rgba(248, 113, 113, 0.3);
 }
 
 .form-message--success {
-  color: #166534;
-  background: #f0fdf4;
-  border-color: #bbf7d0;
+  color: #86efac;
+  background: rgba(34, 197, 94, 0.1);
+  border-color: rgba(34, 197, 94, 0.25);
 }
 
 .btn {
@@ -648,22 +648,22 @@ select {
 }
 
 .badge--primary {
-  background: rgba(37, 99, 235, 0.12);
-  color: var(--color-primary-700);
+  background: rgba(59, 130, 246, 0.15);
+  color: var(--color-primary-600);
 }
 
 .badge--success {
-  background: rgba(22, 163, 74, 0.12);
-  color: #166534;
+  background: rgba(34, 197, 94, 0.12);
+  color: #86efac;
 }
 
 .badge--warning {
-  background: rgba(245, 158, 11, 0.16);
-  color: #92400e;
+  background: rgba(251, 191, 36, 0.12);
+  color: #fbbf24;
 }
 
 .badge--neutral {
-  background: rgba(71, 85, 105, 0.12);
+  background: rgba(139, 148, 158, 0.12);
   color: var(--color-text-muted);
 }
 
@@ -961,10 +961,10 @@ select {
   gap: var(--space-4);
   margin: var(--space-6) 0;
   padding: var(--space-5);
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--color-surface);
   border-radius: var(--radius-xl);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--color-border);
 }
 
 .pagination-info {
@@ -1035,9 +1035,9 @@ select {
 }
 
 .pagination-number:hover {
-  background: var(--color-primary-50);
-  border-color: var(--color-primary-200);
-  color: var(--color-primary-700);
+  background: rgba(59, 130, 246, 0.12);
+  border-color: var(--color-primary-500);
+  color: var(--color-primary-600);
 }
 
 .pagination-number--active {
@@ -1356,9 +1356,9 @@ select {
   justify-content: center;
   width: 44px;
   height: 44px;
-  color: var(--color-primary-700);
-  background: var(--color-primary-50);
-  border: 1px solid var(--color-primary-100);
+  color: var(--color-primary-600);
+  background: rgba(59, 130, 246, 0.12);
+  border: 1px solid rgba(59, 130, 246, 0.25);
   border-radius: 12px;
   font-size: 0.9rem;
   font-weight: var(--font-weight-bold);
@@ -1387,8 +1387,8 @@ select {
 
 .issue-side-nav__icon.is-active,
 .issue-side-nav__icon:hover {
-  background: var(--color-primary-50);
-  border-color: var(--color-primary-100);
+  background: rgba(59, 130, 246, 0.12);
+  border-color: rgba(59, 130, 246, 0.25);
 }
 
 .issue-side-nav__tooltip {
@@ -1418,18 +1418,18 @@ select {
 }
 
 .issue-side-nav__icon--logout {
-  color: #dc2626;
-  border-color: #fecaca;
-  background: #fff5f5;
+  color: var(--color-error);
+  border-color: rgba(248, 113, 113, 0.3);
+  background: rgba(248, 113, 113, 0.08);
 }
 
 .issue-side-nav__icon--logout:hover {
-  background: #fee2e2;
-  border-color: #fca5a5;
+  background: rgba(248, 113, 113, 0.15);
+  border-color: rgba(248, 113, 113, 0.45);
 }
 
 .issue-side-nav__icon--logout .issue-side-nav__tooltip {
-  background: #dc2626;
+  background: #b91c1c;
 }
 
 .issue-content {
@@ -1451,19 +1451,19 @@ select {
   gap: var(--space-3);
   min-height: 52px;
   padding: 0 var(--space-5);
-  background: #f3f4f6;
-  border: 1px solid #cbd5e1;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
   border-radius: 18px;
 }
 
 .issue-search-icon {
-  color: #9ca3af;
+  color: var(--color-text-soft);
   font-size: 24px;
 }
 
 .issue-search-input {
   width: 100%;
-  color: #374151;
+  color: var(--color-text);
   background: transparent;
   border: 0;
   outline: none;
@@ -1472,7 +1472,7 @@ select {
 }
 
 .issue-search-input::placeholder {
-  color: #6b7280;
+  color: var(--color-text-soft);
 }
 
 .issue-topbar-profile {
@@ -1495,8 +1495,8 @@ select {
   width: 42px;
   height: 42px;
   object-fit: cover;
-  background: #e5e7eb;
-  border: 1px solid #d1d5db;
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border);
   border-radius: 999px;
 }
 
@@ -1535,8 +1535,8 @@ select {
 
 .issue-nav-strip {
   padding: 6px var(--space-3);
-  color: var(--color-text);
-  background: var(--color-primary-100);
+  color: var(--color-text-muted);
+  background: rgba(59, 130, 246, 0.1);
   border: 1px solid var(--color-border);
   border-bottom: 0;
   border-radius: 14px 14px 0 0;
@@ -1599,18 +1599,18 @@ select {
 
 .issue-nav a:hover,
 .issue-nav button:hover {
-  color: var(--color-primary-700);
-  background: var(--color-primary-50);
+  color: var(--color-primary-600);
+  background: rgba(59, 130, 246, 0.1);
 }
 
 .issue-nav__links a:first-child {
-  color: var(--color-text-inverse);
+  color: #0d1117;
   background: var(--color-primary-600);
 }
 
 .issue-nav__actions button:last-child {
-  color: #991b1b;
-  background: #fef2f2;
+  color: var(--color-error);
+  background: rgba(248, 113, 113, 0.1);
 }
 
 .issue-page-header {
@@ -1749,13 +1749,13 @@ select {
   color: var(--color-text-inverse);
   background: linear-gradient(135deg, var(--color-primary-500), var(--color-secondary-600));
   border: 1px solid rgba(255, 255, 255, 0.22);
-  box-shadow: 0 10px 22px rgba(47, 128, 237, 0.26);
+  box-shadow: 0 10px 22px rgba(59, 130, 246, 0.3);
 }
 
 .issue-report-link:hover {
   color: var(--color-text-inverse);
   transform: translateY(-1px);
-  box-shadow: 0 14px 26px rgba(47, 128, 237, 0.3);
+  box-shadow: 0 14px 26px rgba(59, 130, 246, 0.4);
 }
 
 .issue-header-art {
@@ -1854,7 +1854,7 @@ select {
 .filter-sort-bar select:focus {
   outline: none;
   border-color: var(--color-primary-500);
-  box-shadow: 0 0 0 3px rgba(47, 128, 237, 0.16);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.22);
 }
 
 .status-filter {
@@ -1868,32 +1868,32 @@ select {
 }
 
 .status-filter--open {
-  color: #374151;
-  background: #f3f4f6;
-  border-color: #d1d5db;
+  color: #8b949e;
+  background: rgba(110, 118, 129, 0.12);
+  border-color: rgba(110, 118, 129, 0.3);
 }
 
 .status-filter--in_progress {
-  color: #854d0e;
-  background: #fef9c3;
-  border-color: #facc15;
+  color: #fbbf24;
+  background: rgba(234, 179, 8, 0.1);
+  border-color: rgba(234, 179, 8, 0.3);
 }
 
 .status-filter--resolved {
-  color: #1d4ed8;
-  background: #dbeafe;
-  border-color: #93c5fd;
+  color: #60a5fa;
+  background: rgba(59, 130, 246, 0.12);
+  border-color: rgba(59, 130, 246, 0.3);
 }
 
 .status-filter--closed {
-  color: #166534;
-  background: #dcfce7;
-  border-color: #86efac;
+  color: #86efac;
+  background: rgba(34, 197, 94, 0.1);
+  border-color: rgba(34, 197, 94, 0.3);
 }
 
 .issue-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-4);
 }
 
@@ -1910,12 +1910,12 @@ select {
   border-top: 5px solid var(--color-primary-500);
   padding: var(--space-5);
   transition: transform var(--transition-fast), box-shadow var(--transition-fast);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), #ffffff);
+  background: var(--color-surface);
 }
 
 .issue-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.1);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.4);
 }
 
 .issue-card-header {
@@ -1939,23 +1939,23 @@ select {
 }
 
 .status-open {
-  background: #f3f4f6;
-  color: #374151;
+  background: rgba(110, 118, 129, 0.15);
+  color: #8b949e;
 }
 
 .status-progress {
-  background: #fef9c3;
-  color: #854d0e;
+  background: rgba(234, 179, 8, 0.12);
+  color: #fbbf24;
 }
 
 .status-resolved {
-  background: #dbeafe;
-  color: #1d4ed8;
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
 }
 
 .status-closed {
-  background: #dcfce7;
-  color: #166534;
+  background: rgba(34, 197, 94, 0.12);
+  color: #86efac;
 }
 
 .status-default {
@@ -1964,8 +1964,8 @@ select {
 }
 
 .issue-votes {
-  background: var(--color-secondary-50);
-  color: var(--color-secondary-800);
+  background: rgba(34, 211, 238, 0.1);
+  color: var(--color-secondary-500);
 }
 
 .issue-title {
@@ -1983,10 +1983,7 @@ select {
   color: var(--color-text-muted);
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
   line-clamp: 3;
-  -webkit-box-orient: vertical;
 }
 
 .issue-meta {
@@ -2000,8 +1997,8 @@ select {
 }
 
 .issue-category {
-  background: #f3e8ff;
-  color: #6b21a8;
+  background: rgba(139, 92, 246, 0.12);
+  color: #c4b5fd;
 }
 
 .issue-detail-link,
@@ -2015,7 +2012,7 @@ select {
   background: linear-gradient(135deg, var(--color-primary-500), var(--color-secondary-600));
   border-radius: var(--radius-full);
   font-weight: var(--font-weight-semibold);
-  box-shadow: 0 8px 18px rgba(47, 128, 237, 0.26);
+  box-shadow: 0 8px 18px rgba(59, 130, 246, 0.3);
 }
 
 .issue-detail-link:hover,
@@ -2066,19 +2063,29 @@ select {
   object-fit: cover;
 }
 
-@media (min-width: 640px) {
+@media (min-width: 768px) {
   .issue-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 1280px) {
   .issue-grid {
     grid-template-columns: repeat(4, 1fr);
   }
 }
 
+/* Bottom tab bar — hidden by default, shown on mobile */
+.bottom-tab-bar {
+  display: none;
+}
+
 @media (max-width: 639px) {
+  /* Auth: hide decorative left panel on mobile, show form only */
+  .auth-panel {
+    display: none;
+  }
+
   .issue-layout {
     grid-template-columns: 1fr;
   }
@@ -2087,8 +2094,14 @@ select {
     display: none;
   }
 
+  /* Space for fixed bottom tab bar */
   .issue-content {
     padding: var(--space-4);
+    padding-bottom: 76px;
+  }
+
+  .issue-grid {
+    grid-template-columns: 1fr;
   }
 
   .issue-topbar {
@@ -2149,13 +2162,89 @@ select {
     font-size: var(--font-size-3xl);
   }
 
+  /* Filter bar: horizontal scroll on mobile */
   .filter-sort-bar {
-    grid-template-columns: 1fr;
+    display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
     gap: var(--space-3);
+    padding-bottom: var(--space-2);
+    width: 100%;
+  }
+
+  .filter-sort-bar select {
+    flex: 0 0 auto;
+    min-width: 160px;
   }
 
   .issue-meta {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  /* Bottom tab bar */
+  .bottom-tab-bar {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: var(--color-surface);
+    border-top: 1px solid var(--color-border);
+    z-index: 100;
+  }
+
+  .bottom-tab-bar__item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    background: transparent;
+    border: 0;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    text-decoration: none;
+    cursor: pointer;
+    transition: color var(--transition-fast);
+  }
+
+  .bottom-tab-bar__item svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .bottom-tab-bar__item.is-active,
+  .bottom-tab-bar__item:hover {
+    color: var(--color-primary-500);
+  }
+}
+
+@media (min-width: 640px) and (max-width: 1023px) {
+  /* Tablet: narrow sidebar (icons only) */
+  .issue-layout {
+    grid-template-columns: 64px minmax(0, 1fr);
+  }
+
+  .issue-side-nav {
+    width: 64px;
+  }
+
+  /* 2-col grid on tablet */
+  .issue-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Filter: 2 columns on tablet */
+  .filter-sort-bar {
+    grid-template-columns: repeat(2, minmax(160px, 1fr));
+  }
+
+  /* Stats: 2 columns on tablet */
+  .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

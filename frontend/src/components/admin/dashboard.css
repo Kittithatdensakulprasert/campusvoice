@@ -27,10 +27,10 @@
 }
 
 .dashboard-alert {
-  background: #fef2f2;
-  border: 1px solid #fecaca;
+  background: rgba(248, 113, 113, 0.1);
+  border: 1px solid rgba(248, 113, 113, 0.3);
   border-radius: var(--radius-md);
-  color: #991b1b;
+  color: #fca5a5;
   margin-bottom: var(--space-5);
   padding: var(--space-3) var(--space-4);
 }
@@ -160,7 +160,7 @@
 .dashboard-search input:focus,
 .dashboard-search select:focus {
   border-color: var(--color-primary-500);
-  box-shadow: 0 0 0 3px rgba(47, 128, 237, 0.16);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.22);
   outline: none;
 }
 
