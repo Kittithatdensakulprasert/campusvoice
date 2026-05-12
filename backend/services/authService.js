@@ -1,5 +1,6 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const { createTuApiService, TuApiError } = require('./tuApiService');
 
 const DEFAULT_LOGIN_WINDOW_MS = 10 * 60 * 1000;
 const DEFAULT_MAX_LOGIN_ATTEMPTS = 5;
@@ -44,7 +45,26 @@ const validateRegistrationInput = ({ name, email, password }) => {
   };
 };
 
-const validateLoginInput = ({ email, password }) => {
+const validateLoginInput = ({ email, password, authType = 'local' }) => {
+  if (authType === 'tu') {
+    const normalizedUsername = String(email || '').trim();
+    const normalizedPassword = String(password || '');
+
+    if (!normalizedUsername) {
+      throw new AuthError('Student ID is required', 400);
+    }
+
+    if (!normalizedPassword) {
+      throw new AuthError('Password is required', 400);
+    }
+
+    return {
+      username: normalizedUsername,
+      password: normalizedPassword
+    };
+  }
+
+  // Original email/password validation
   const normalizedEmail = normalizeEmail(email);
   const normalizedPassword = String(password || '');
 
@@ -105,7 +125,8 @@ const createAuthService = ({
   jwtSecret = process.env.JWT_SECRET,
   jwtExpiresIn = process.env.JWT_EXPIRES_IN || '7d',
   saltRounds = 10,
-  rateLimiter = createRateLimiter()
+  rateLimiter = createRateLimiter(),
+  tuApiService = createTuApiService()
 }) => {
   if (!authRepository) {
     throw new Error('authRepository is required');
@@ -150,6 +171,13 @@ const createAuthService = ({
     },
 
     async login(input, options = {}) {
+      const authType = input.authType || 'local';
+      
+      if (authType === 'tu') {
+        return await this.loginWithTuApi(input, options);
+      }
+      
+      // Original local login
       const { email, password } = validateLoginInput(input);
       const rateLimitKey = options.rateLimitKey || email;
       rateLimiter.consume(rateLimitKey);
@@ -171,6 +199,71 @@ const createAuthService = ({
         user,
         token: signToken(user)
       };
+    },
+
+    async loginWithTuApi(input, options = {}) {
+      const { username, password } = validateLoginInput({ ...input, authType: 'tu' });
+      const rateLimitKey = options.rateLimitKey || username;
+      rateLimiter.consume(rateLimitKey);
+
+      try {
+        // Authenticate with TU API v1
+        const authResult = await tuApiService.authenticate(username, password);
+        
+        if (authResult.type !== 'student') {
+          throw new AuthError('Only student accounts are allowed', 403);
+        }
+
+        // Get student info from TU API v2
+        const studentInfo = await tuApiService.getStudentInfo(username);
+        
+        if (!studentInfo.data || studentInfo.data.type !== 'student') {
+          throw new AuthError('Only student accounts are allowed', 403);
+        }
+
+        const data = studentInfo.data;
+        
+        // Check if user already exists
+        let user = await authRepository.findUserByStudentId(username);
+        
+        if (!user) {
+          // Create new user
+          user = await authRepository.createTuUser({
+            email: data.email,
+            name: data.displayname_th,
+            student_id: username,
+            displayname_th: data.displayname_th,
+            displayname_en: data.displayname_en,
+            faculty: data.faculty,
+            department: data.department,
+            status_name: data.statusname,
+            auth_type: 'tu'
+          });
+        } else {
+          // Update existing user info
+          user = await authRepository.updateTuUser(user.id, {
+            email: data.email,
+            name: data.displayname_th,
+            displayname_th: data.displayname_th,
+            displayname_en: data.displayname_en,
+            faculty: data.faculty,
+            department: data.department,
+            status_name: data.statusname
+          });
+        }
+
+        rateLimiter.reset(rateLimitKey);
+
+        return {
+          user,
+          token: signToken(user)
+        };
+      } catch (error) {
+        if (error instanceof TuApiError) {
+          throw new AuthError(error.message, error.statusCode);
+        }
+        throw error;
+      }
     },
 
     async getCurrentUser(userId) {
