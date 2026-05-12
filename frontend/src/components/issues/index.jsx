@@ -1,31 +1,29 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
-import Pagination from '../common/Pagination';
-import SideNav from '../common/SideNav';
 import VoteButton from '../votes/VoteButton';
 import CommentList from '../comments/CommentList';
 
 const ISSUE_CATEGORIES = [
-  'ห้องเรียน',
-  'ห้องน้ำ',
-  'อาหาร',
+  'à¸«à¹‰à¸­à¸‡à¹€à¸£à¸µà¸¢à¸™',
+  'à¸«à¹‰à¸­à¸‡à¸™à¹‰à¸³',
+  'à¸­à¸²à¸«à¸²à¸£',
   'Wi-Fi',
-  'ความปลอดภัย',
-  'อื่นๆ',
+  'à¸„à¸§à¸²à¸¡à¸›à¸¥à¸­à¸”à¸ à¸±à¸¢',
+  'à¸­à¸·à¹ˆà¸™à¹†',
 ];
 
 const STATUS_LABELS = {
-  open: 'รอดำเนินการ',
-  in_progress: 'กำลังดำเนินการ',
-  resolved: 'แก้ไขแล้ว',
-  closed: 'เสร็จสิ้น',
+  open: 'à¸£à¸­à¸”à¸³à¹€à¸™à¸´à¸™à¸à¸²à¸£',
+  in_progress: 'à¸à¸³à¸¥à¸±à¸‡à¸”à¸³à¹€à¸™à¸´à¸™à¸à¸²à¸£',
+  resolved: 'à¹à¸à¹‰à¹„à¸‚à¹à¸¥à¹‰à¸§',
+  closed: 'à¹€à¸ªà¸£à¹‡à¸ˆà¸ªà¸´à¹‰à¸™',
 };
 
 const UNKNOWN_STATUS = 'Unknown';
 const UNTITLED_ISSUE = 'Untitled issue';
-const EMPTY_VALUE = '—';
+const EMPTY_VALUE = 'â€”';
 
 function getStatusClass(status) {
   const normalized = String(status || '').toLowerCase();
@@ -64,29 +62,74 @@ function getIssuesFromResponse(data) {
 }
 
 function IssueLayoutNav() {
-  return <SideNav />;
+  const navigate = useNavigate();
+  const { logout } = useAuth();
+
+  function handleLogout() {
+    logout();
+    navigate('/login');
+  }
+
+  return (
+    <aside className="issue-side-nav" aria-label="Primary navigation">
+      <Link className="issue-side-nav__brand" to="/issues">CV</Link>
+
+      <Link
+        className="issue-side-nav__icon is-active"
+        to="/issues"
+        aria-label="à¸£à¸²à¸¢à¸à¸²à¸£à¸›à¸±à¸à¸«à¸²"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="issue-side-nav__svg">
+          <path d="M11.47 3.841a.75.75 0 0 1 1.06 0l8.69 8.69a.75.75 0 1 0 1.06-1.061l-8.689-8.69a2.25 2.25 0 0 0-3.182 0l-8.69 8.69a.75.75 0 1 0 1.061 1.06l8.69-8.689Z" />
+          <path d="m12 5.432 8.159 8.159c.03.03.06.058.091.086v6.198c0 1.035-.84 1.875-1.875 1.875H15a.75.75 0 0 1-.75-.75v-4.5a.75.75 0 0 0-.75-.75h-3a.75.75 0 0 0-.75.75V21a.75.75 0 0 1-.75.75H5.625a1.875 1.875 0 0 1-1.875-1.875v-6.198a2.29 2.29 0 0 0 .091-.086L12 5.432Z" />
+        </svg>
+        <span className="issue-side-nav__tooltip">à¸£à¸²à¸¢à¸à¸²à¸£à¸›à¸±à¸à¸«à¸²</span>
+      </Link>
+
+      <Link
+        className="issue-side-nav__icon"
+        to="/report"
+        aria-label="à¹à¸ˆà¹‰à¸‡à¸›à¸±à¸à¸«à¸²"
+      >
+        ï¼‹
+        <span className="issue-side-nav__tooltip">à¹à¸ˆà¹‰à¸‡à¸›à¸±à¸à¸«à¸²</span>
+      </Link>
+
+      <button
+        type="button"
+        className="issue-side-nav__icon issue-side-nav__icon--logout"
+        aria-label="à¸­à¸­à¸à¸ˆà¸²à¸à¸£à¸°à¸šà¸š"
+        onClick={handleLogout}
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="issue-side-nav__svg">
+          <path fillRule="evenodd" d="M16.5 3.75a1.5 1.5 0 0 1 1.5 1.5v13.5a1.5 1.5 0 0 1-1.5 1.5h-6a1.5 1.5 0 0 1-1.5-1.5V15a.75.75 0 0 0-1.5 0v3.75a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3V5.25a3 3 0 0 0-3-3h-6a3 3 0 0 0-3 3V9A.75.75 0 1 0 9 9V5.25a1.5 1.5 0 0 1 1.5-1.5h6ZM5.78 8.47a.75.75 0 0 0-1.06 0l-3 3a.75.75 0 0 0 0 1.06l3 3a.75.75 0 0 0 1.06-1.06l-1.72-1.72H15a.75.75 0 0 0 0-1.5H4.06l1.72-1.72a.75.75 0 0 0 0-1.06Z" clipRule="evenodd" />
+        </svg>
+        <span className="issue-side-nav__tooltip">à¸­à¸­à¸à¸ˆà¸²à¸à¸£à¸°à¸šà¸š</span>
+      </button>
+    </aside>
+  );
 }
 
 function IssueTopBar({ searchText, onSearchChange }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const { user } = useAuth();
-  const profileName = user?.name || 'ผู้ใช้งาน';
+  const profileName = user?.name || 'à¸œà¸¹à¹‰à¹ƒà¸Šà¹‰à¸‡à¸²à¸™';
   const profileEmail = user?.email || '';
   const avatarSeed = encodeURIComponent(user?.email || user?.name || 'CampusVoice');
 
   return (
     <header className="issue-topbar">
       <div className="issue-search-wrap">
-        <span className="issue-search-icon" aria-hidden="true">⌕</span>
+        <span className="issue-search-icon" aria-hidden="true">âŒ•</span>
         <input
           className="issue-search-input"
           type="search"
-          placeholder="ค้นหาปัญหา"
+          placeholder="à¸„à¹‰à¸™à¸«à¸²à¸›à¸±à¸à¸«à¸²"
           value={searchText}
           onChange={(event) => onSearchChange(event.target.value)}
         />
       </div>
-      <div className="issue-topbar-profile" aria-label="โปรไฟล์">
+      <div className="issue-topbar-profile" aria-label="à¹‚à¸›à¸£à¹„à¸Ÿà¸¥à¹Œ">
         <button
           type="button"
           className="issue-topbar-profile__trigger"
@@ -95,7 +138,7 @@ function IssueTopBar({ searchText, onSearchChange }) {
           <img
             className="issue-topbar-profile__avatar"
             src={`https://api.dicebear.com/9.x/adventurer/svg?seed=${avatarSeed}`}
-            alt="โปรไฟล์ผู้ใช้"
+            alt="à¹‚à¸›à¸£à¹„à¸Ÿà¸¥à¹Œà¸œà¸¹à¹‰à¹ƒà¸Šà¹‰"
           />
         </button>
 
@@ -118,15 +161,15 @@ function FilterSortBar({ status, onStatusChange, category, onCategoryChange, sor
         value={status}
         onChange={(e) => onStatusChange(e.target.value)}
       >
-        <option value="">สถานะทั้งหมด</option>
-        <option value="open">รอดำเนินการ</option>
-        <option value="in_progress">กำลังดำเนินการ</option>
-        <option value="resolved">แก้ไขแล้ว</option>
-        <option value="closed">เสร็จสิ้น</option>
+        <option value="">à¸ªà¸–à¸²à¸™à¸°à¸—à¸±à¹‰à¸‡à¸«à¸¡à¸”</option>
+        <option value="open">à¸£à¸­à¸”à¸³à¹€à¸™à¸´à¸™à¸à¸²à¸£</option>
+        <option value="in_progress">à¸à¸³à¸¥à¸±à¸‡à¸”à¸³à¹€à¸™à¸´à¸™à¸à¸²à¸£</option>
+        <option value="resolved">à¹à¸à¹‰à¹„à¸‚à¹à¸¥à¹‰à¸§</option>
+        <option value="closed">à¹€à¸ªà¸£à¹‡à¸ˆà¸ªà¸´à¹‰à¸™</option>
       </select>
 
       <select value={category} onChange={(e) => onCategoryChange(e.target.value)}>
-        <option value="">หมวดหมู่ทั้งหมด</option>
+        <option value="">à¸«à¸¡à¸§à¸”à¸«à¸¡à¸¹à¹ˆà¸—à¸±à¹‰à¸‡à¸«à¸¡à¸”</option>
         {ISSUE_CATEGORIES.map((issueCategory) => (
           <option key={issueCategory} value={issueCategory}>
             {issueCategory}
@@ -135,8 +178,8 @@ function FilterSortBar({ status, onStatusChange, category, onCategoryChange, sor
       </select>
 
       <select value={sort} onChange={(e) => onSortChange(e.target.value)}>
-        <option value="date">เรียงตามวันที่</option>
-        <option value="votes">เรียงตามโหวต</option>
+        <option value="date">à¹€à¸£à¸µà¸¢à¸‡à¸•à¸²à¸¡à¸§à¸±à¸™à¸—à¸µà¹ˆ</option>
+        <option value="votes">à¹€à¸£à¸µà¸¢à¸‡à¸•à¸²à¸¡à¹‚à¸«à¸§à¸•</option>
       </select>
     </section>
   );
@@ -151,7 +194,7 @@ export function IssueCard({ issue }) {
         <span className={`status-badge ${getStatusClass(issue.status)}`}>
           {statusLabel}
         </span>
-        <span className="issue-votes">▲ {getIssueVoteCount(issue)}</span>
+        <span className="issue-votes">â–² {getIssueVoteCount(issue)}</span>
       </div>
 
       <h2 className="issue-title">{issue.title || UNTITLED_ISSUE}</h2>
@@ -161,12 +204,12 @@ export function IssueCard({ issue }) {
       </p>
 
       <div className="issue-meta">
-        <span className="issue-category">{issue.category || 'ไม่มีหมวดหมู่'}</span>
+        <span className="issue-category">{issue.category || 'Uncategorized'}</span>
         <span>{formatIssueDate(issue.created_at)}</span>
       </div>
 
       <Link className="issue-detail-link" to={`/issues/${issue.id}`}>
-        ดูรายละเอียด
+        à¸”à¸¹à¸£à¸²à¸¢à¸¥à¸°à¹€à¸­à¸µà¸¢à¸”
       </Link>
     </article>
   );
@@ -179,8 +222,6 @@ export function IssueListPage() {
   const [status, setStatus] = useState('');
   const [searchText, setSearchText] = useState('');
   const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const fetchIssues = useCallback(async () => {
     try {
@@ -219,17 +260,6 @@ export function IssueListPage() {
     });
   }, [issues, searchText]);
 
-  const totalPages = Math.ceil(filteredIssues.length / itemsPerPage);
-  const handlePageChange = useCallback((page) => {
-    setCurrentPage(page);
-    window.scrollTo(0, 0);
-  }, []);
-
-  const handleItemsPerPageChange = useCallback((newItemsPerPage) => {
-    setItemsPerPage(newItemsPerPage);
-    setCurrentPage(1);
-  }, []);
-
   return (
     <main className="issue-layout">
       <IssueLayoutNav />
@@ -244,34 +274,17 @@ export function IssueListPage() {
           sort={sort}
           onSortChange={setSort}
         />
-        {loading ? (
-          <div className="issue-loading">
-            <div className="loading-spinner">
-              <svg className="spinning-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 0 0 4.582 9H4m0 11v-5h.582m0 0a8.001 8.001 0 0 0 15.356-2H20m0 0v5" />
-              </svg>
-            </div>
-            <p>กำลังดำเนินการ...</p>
-          </div>
-        ) : filteredIssues.length === 0 ? (
-          <p className="issue-message">ไม่พบปัญหาที่ค้นหา</p>
-        ) : (
-          <>
-            <section className="issue-grid" aria-label="Issue list">
-              {filteredIssues.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((issue) => (
-                <IssueCard key={issue.id} issue={issue} />
-              ))}
-            </section>
 
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              totalItems={filteredIssues.length}
-              onPageChange={handlePageChange}
-              itemsPerPage={itemsPerPage}
-              onItemsPerPageChange={handleItemsPerPageChange}
-            />
-          </>
+        {loading ? (
+          <p className="issue-message">Loading issues...</p>
+        ) : filteredIssues.length === 0 ? (
+          <p className="issue-message">No issues found.</p>
+        ) : (
+          <section className="issue-grid" aria-label="Issue list">
+            {filteredIssues.map((issue) => (
+              <IssueCard key={issue.id} issue={issue} />
+            ))}
+          </section>
         )}
       </section>
     </main>
@@ -280,19 +293,16 @@ export function IssueListPage() {
 
 export function IssueDetailPage() {
   const { id } = useParams();
+  const { isAuthenticated } = useAuth();
   const [issue, setIssue] = useState(null);
+  const [voted, setVoted] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [voteCount, setVoteCount] = useState(0);
-  const [hasVoted, setHasVoted] = useState(false);
 
   const fetchIssueDetail = useCallback(async () => {
     try {
       setLoading(true);
       const res = await api.get(`/issues/${id}`);
-      const issueData = res.data;
-      setIssue(issueData);
-      setVoteCount(getIssueVoteCount(issueData));
-      setHasVoted(!!issueData.voted);
+      setIssue(res.data);
     } catch (err) {
       console.error(err);
       setIssue(null);
@@ -301,16 +311,37 @@ export function IssueDetailPage() {
     }
   }, [id]);
 
+  // à¹€à¸Šà¹‡à¸„ voted state: à¸¥à¸­à¸‡ DELETE vote à¸à¹ˆà¸­à¸™ à¸–à¹‰à¸² 404 = à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¹‚à¸«à¸§à¸•, à¸–à¹‰à¸² 200 = à¹€à¸„à¸¢à¹‚à¸«à¸§à¸• (à¹à¸¥à¹‰à¸§ unvote à¹„à¸›)
+  // à¸§à¸´à¸˜à¸µà¸—à¸µà¹ˆà¸–à¸¹à¸à¸•à¹‰à¸­à¸‡à¸„à¸·à¸­ backend à¸„à¸§à¸£à¸¡à¸µ GET endpoint à¹à¸•à¹ˆà¹ƒà¸Šà¹‰ 409 probe à¹à¸šà¸šà¸™à¸µà¹‰à¹„à¸›à¸à¹ˆà¸­à¸™
+  useEffect(() => {
+    if (!isAuthenticated || !id) return;
+    // à¹ƒà¸Šà¹‰ GET issues/:id à¹à¸¥à¹‰à¸§à¹€à¸—à¸µà¸¢à¸šà¸à¸±à¸š voted à¸ˆà¸²à¸ backend à¹„à¸¡à¹ˆà¹„à¸”à¹‰ à¹ƒà¸«à¹‰à¹ƒà¸Šà¹‰ POST probe
+    // POST /votes/:id â€” à¸–à¹‰à¸²à¸ªà¸³à¹€à¸£à¹‡à¸ˆ (201) = à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¹€à¸„à¸¢à¹‚à¸«à¸§à¸• â†’ à¸¥à¸šà¸—à¸´à¹‰à¸‡à¸„à¸·à¸™
+    // à¸–à¹‰à¸²à¹„à¸”à¹‰ 409 = à¹€à¸„à¸¢à¹‚à¸«à¸§à¸•à¹à¸¥à¹‰à¸§
+    let cancelled = false;
+    api.post(`/votes/${id}`)
+      .then(() => {
+        if (!cancelled) setVoted(false);
+        return api.delete(`/votes/${id}`);
+      })
+      .catch((err) => {
+        if (!cancelled && err.response?.status === 409) {
+          setVoted(true);
+        }
+      });
+    return () => { cancelled = true; };
+  }, [id, isAuthenticated]);
+
   useEffect(() => {
     fetchIssueDetail();
   }, [fetchIssueDetail]);
 
   if (loading) {
-    return <p className="issue-message">กำลังโหลด...</p>;
+    return <p className="issue-message">Loading issue detail...</p>;
   }
 
   if (!issue) {
-    return <p className="issue-message">ไม่พบปัญหานี้</p>;
+    return <p className="issue-message">Issue not found.</p>;
   }
 
   const statusLabel = getStatusLabel(issue.status);
@@ -328,21 +359,17 @@ export function IssueDetailPage() {
             </span>
             <VoteButton
               issueId={id}
-              voteCount={voteCount}
-              voted={hasVoted}
-              onChange={({ voted, voteCount: nextCount }) => {
-                setHasVoted(voted);
-                setVoteCount(nextCount);
-              }}
+              voteCount={getIssueVoteCount(issue)}
+              voted={voted}
             />
           </div>
 
           <h1>{issue.title || UNTITLED_ISSUE}</h1>
 
           <div className="issue-meta detail-meta">
-            <span>หมวดหมู่: {issue.category || 'ไม่มีหมวดหมู่'}</span>
-            <span>สถานที่: {issue.location || EMPTY_VALUE}</span>
-            <span>วันที่: {formatIssueDate(issue.created_at)}</span>
+            <span>à¸«à¸¡à¸§à¸”à¸«à¸¡à¸¹à¹ˆ: {issue.category || 'à¹„à¸¡à¹ˆà¸¡à¸µà¸«à¸¡à¸§à¸”à¸«à¸¡à¸¹à¹ˆ'}</span>
+            <span>à¸ªà¸–à¸²à¸™à¸—à¸µà¹ˆ: {issue.location || EMPTY_VALUE}</span>
+            <span>à¸§à¸±à¸™à¸—à¸µà¹ˆ: {formatIssueDate(issue.created_at)}</span>
           </div>
 
           <p className="issue-detail-description">
@@ -356,7 +383,6 @@ export function IssueDetailPage() {
               alt={issue.title ? `Reported issue: ${issue.title}` : 'Reported issue'}
             />
           ) : null}
-
         </article>
 
         <CommentList issueId={id} />
@@ -366,3 +392,4 @@ export function IssueDetailPage() {
 }
 
 export default IssueListPage;
+
