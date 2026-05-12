@@ -336,7 +336,7 @@ export function IssueDetailPage() {
       const issueData = res.data;
       setIssue(issueData);
       setVoteCount(getIssueVoteCount(issueData));
-      setHasVoted(false);
+      setHasVoted(!!issueData.voted);
     } catch (err) {
       console.error(err);
       setIssue(null);

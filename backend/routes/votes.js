@@ -20,7 +20,11 @@ router.post('/:issueId', verifyToken, async (req, res) => {
     if (!issue) return res.status(404).json({ error: 'Issue not found' });
 
     const existing = await Vote.findOne({ user_id: userId, issue_id: issueId });
-    if (existing) return res.status(409).json({ error: 'Already voted', voted: true });
+    if (existing) {
+      await Vote.deleteOne({ _id: existing._id });
+      const voteCount = await Vote.countDocuments({ issue_id: issueId });
+      return res.json({ message: 'Vote removed', voteCount, voted: false });
+    }
 
     await Vote.create({ user_id: userId, issue_id: issueId });
 

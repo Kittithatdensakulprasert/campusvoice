@@ -81,8 +81,8 @@ select {
   position: relative;
   overflow: hidden;
   background:
-    linear-gradient(155deg, rgba(6, 37, 98, 0.96), rgba(8, 91, 116, 0.92)),
-    radial-gradient(circle at top left, rgba(255, 255, 255, 0.08), transparent 35%);
+    linear-gradient(to bottom, rgba(6, 37, 98, 0.30) 0%, rgba(4, 20, 60, 0.75) 100%),
+    url('/src/assets/auth-bg.png') center / cover no-repeat;
   border-radius: var(--radius-2xl);
   padding: var(--space-7);
   color: var(--color-text-inverse);
@@ -133,6 +133,7 @@ select {
   font-weight: var(--font-weight-semibold);
   letter-spacing: 0.05em;
   text-transform: uppercase;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
 }
 
 .auth-brand-mark {
@@ -796,18 +797,16 @@ select {
   margin-top: 0;
   margin-bottom: var(--space-4);
   font-size: clamp(2.5rem, 6vw, 4.5rem);
-  background: linear-gradient(135deg, #ffffff 0%, rgba(255, 255, 255, 0.8) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  color: #ffffff;
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.6), 0 1px 4px rgba(0, 0, 0, 0.4);
 }
 
 .premium-hero .auth-subheading {
   margin-top: 0;
   margin-bottom: 0;
   font-size: var(--font-size-lg);
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.95);
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.5);
   max-width: 28rem;
   margin-left: auto;
   margin-right: auto;
@@ -1186,25 +1185,29 @@ select {
 
   .auth-panel {
     min-height: 46rem;
+    display: flex;
+    flex-direction: column;
   }
 
   .auth-card {
     align-self: stretch;
     display: flex;
     flex-direction: column;
+    height: 100%;
   }
 
   .auth-form-card .card__body {
     flex: 1;
     display: flex;
     flex-direction: column;
+    justify-content: space-between;
   }
 
   .auth-panel-content {
     display: flex;
+    flex: 1;
     flex-direction: column;
-    justify-content: flex-start;
-    min-height: 100%;
+    justify-content: center;
     padding-bottom: var(--space-8);
   }
 }
