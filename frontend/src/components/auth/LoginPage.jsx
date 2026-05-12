@@ -79,8 +79,8 @@ export default function LoginPage() {
 
       login(payload.user, payload.token);
       setIsErrorMessage(false);
-      setMessage('เข้าสู่ระบบสำเร็จ กำลังพาไปหน้า issues');
-      navigate('/issues');
+      const isAdmin = payload.user?.role === 'admin' || payload.user?.role === 'staff';
+      navigate(isAdmin ? '/dashboard' : '/issues');
     } catch (error) {
       setIsErrorMessage(true);
       setMessage(
