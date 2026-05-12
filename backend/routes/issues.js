@@ -260,7 +260,8 @@ router.patch('/:id/status', verifyToken, roleGuard(['admin', 'staff']), async (r
 
     res.json({ message: 'Status updated', issueId: issue._id, status });
   } catch (err) {
-    res.status(500).json({ message: 'Server error' });
+    console.error('Update issue status error:', err);
+    res.status(500).json({ error: 'Failed to update issue status' });
   }
 });
 
