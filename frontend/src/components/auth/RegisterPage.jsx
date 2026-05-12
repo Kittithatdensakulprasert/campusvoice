@@ -24,12 +24,12 @@ function getPasswordStrength(password) {
   score = Object.values(checks).filter(Boolean).length;
   
   const levels = [
-    { score: 0, label: 'อ่อนมาก', color: 'bg-red-500' },
-    { score: 1, label: 'อ่อน', color: 'bg-red-400' },
-    { score: 2, label: 'ปานกลาง', color: 'bg-yellow-500' },
-    { score: 3, label: 'ดี', color: 'bg-blue-500' },
-    { score: 4, label: 'แข็งแรง', color: 'bg-green-500' },
-    { score: 5, label: 'แข็งแรงมาก', color: 'bg-green-600' }
+    { score: 0, label: 'อ่อนมาก', color: '#ef4444' },
+    { score: 1, label: 'อ่อน', color: '#f87171' },
+    { score: 2, label: 'ปานกลาง', color: '#eab308' },
+    { score: 3, label: 'ดี', color: '#3b82f6' },
+    { score: 4, label: 'แข็งแรง', color: '#22c55e' },
+    { score: 5, label: 'แข็งแรงมาก', color: '#16a34a' }
   ];
   
   return levels[score] || levels[0];
@@ -233,7 +233,7 @@ export default function RegisterPage() {
                     />
                     {values.name && !errors.name && (
                       <div className="input-success-icon">
-                        <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg style={{ width: '1.25rem', height: '1.25rem', color: '#22c55e' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
                         </svg>
                       </div>
@@ -259,7 +259,7 @@ export default function RegisterPage() {
                     />
                     {values.email && !errors.email && (
                       <div className="input-success-icon">
-                        <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg style={{ width: '1.25rem', height: '1.25rem', color: '#22c55e' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
                         </svg>
                       </div>
@@ -298,9 +298,9 @@ export default function RegisterPage() {
                   {values.password && (
                     <div className="password-strength">
                       <div className="password-strength-bar">
-                        <div 
-                          className={`password-strength-fill ${passwordStrength.color}`}
-                          style={{ width: `${(passwordStrength.score / 5) * 100}%` }}
+                        <div
+                          className="password-strength-fill"
+                          style={{ width: `${(passwordStrength.score / 5) * 100}%`, backgroundColor: passwordStrength.color }}
                         />
                       </div>
                       <span className="password-strength-label">{passwordStrength.label}</span>

@@ -169,7 +169,21 @@ router.get('/:id', async (req, res) => {
     if (!issue) return res.status(404).json({ error: 'Issue not found' });
 
     const [formatted] = await formatIssues([issue]);
-    res.json(formatted);
+
+    // ตรวจว่า user ที่ login แล้วโหวต issue นี้หรือยัง
+    let voted = false;
+    const authHeader = req.headers.authorization;
+    if (authHeader) {
+      try {
+        const jwt = require('jsonwebtoken');
+        const token = authHeader.split(' ')[1];
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const existing = await Vote.findOne({ user_id: decoded.id, issue_id: issue._id });
+        voted = !!existing;
+      } catch (_) {}
+    }
+
+    res.json({ ...formatted, voted });
   } catch (error) {
     console.error('Get issue error:', error);
     res.status(500).json({ error: 'Failed to load issue' });

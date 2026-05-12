@@ -197,7 +197,7 @@ export default function LoginPage() {
                   />
                   {values.email && !errors.email && (
                     <div className="input-success-icon">
-                      <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg style={{ width: '1.25rem', height: '1.25rem', color: '#22c55e' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
                       </svg>
                     </div>
@@ -272,7 +272,7 @@ export default function LoginPage() {
             </form>
 
             <div className="auth-footer">
-              <span> 2026 CampusVoice. All rights reserved.</span>
+              <span>© 2026 CampusVoice. All rights reserved.</span>
             </div>
           </div>
         </section>
