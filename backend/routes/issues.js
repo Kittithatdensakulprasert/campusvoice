@@ -186,16 +186,23 @@ router.patch('/:id/status', verifyToken, roleGuard(['admin', 'staff']), async (r
   }
 });
 
-// DELETE /api/issues/:id
-router.delete('/:id', verifyToken, roleGuard(['admin']), async (req, res) => {
+// DELETE /api/issues/:id — admin สามารถลบได้ทุก issue, user ลบได้เฉพาะของตัวเอง
+router.delete('/:id', verifyToken, async (req, res) => {
   if (!mongoose.isValidObjectId(req.params.id)) {
     return res.status(400).json({ error: 'Invalid issue id' });
   }
 
   try {
-    const issue = await Issue.findByIdAndDelete(req.params.id);
-
+    const issue = await Issue.findById(req.params.id);
     if (!issue) return res.status(404).json({ error: 'Issue not found' });
+
+    const isAdmin = req.user.role === 'admin';
+    const isOwner = issue.user_id.toString() === req.user.id;
+    if (!isAdmin && !isOwner) {
+      return res.status(403).json({ error: 'ไม่มีสิทธิ์ลบ issue นี้' });
+    }
+
+    await issue.deleteOne();
 
     if (issue.image_url) {
       fs.unlink(path.join(__dirname, '..', issue.image_url), () => {});

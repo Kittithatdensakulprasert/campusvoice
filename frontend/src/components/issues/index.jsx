@@ -142,8 +142,27 @@ function FilterSortBar({ status, onStatusChange, category, onCategoryChange, sor
   );
 }
 
-export function IssueCard({ issue }) {
+export function IssueCard({ issue, onDelete }) {
+  const { user, isAdmin } = useAuth();
+  const [deleting, setDeleting] = useState(false);
   const statusLabel = getStatusLabel(issue.status);
+
+  const isOwner = user && String(user.id) === String(issue.user_id);
+  const canDelete = isAdmin || isOwner;
+
+  async function handleDelete(e) {
+    e.preventDefault();
+    if (!window.confirm(`ยืนยันการลบ "${issue.title || 'issue นี้'}"?`)) return;
+    try {
+      setDeleting(true);
+      await api.delete(`/issues/${issue.id}`);
+      onDelete?.(issue.id);
+    } catch (err) {
+      window.alert(err.response?.data?.error || 'ลบไม่สำเร็จ');
+    } finally {
+      setDeleting(false);
+    }
+  }
 
   return (
     <article className="issue-card">
@@ -165,9 +184,22 @@ export function IssueCard({ issue }) {
         <span>{formatIssueDate(issue.created_at)}</span>
       </div>
 
-      <Link className="issue-detail-link" to={`/issues/${issue.id}`}>
-        ดูรายละเอียด
-      </Link>
+      <div className="issue-card-actions">
+        <Link className="issue-detail-link" to={`/issues/${issue.id}`}>
+          ดูรายละเอียด
+        </Link>
+        {canDelete && (
+          <button
+            type="button"
+            className="issue-delete-btn"
+            onClick={handleDelete}
+            disabled={deleting}
+            aria-label="ลบ issue"
+          >
+            {deleting ? '...' : 'ลบ'}
+          </button>
+        )}
+      </div>
     </article>
   );
 }
@@ -181,6 +213,10 @@ export function IssueListPage() {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  const handleDeleteIssue = useCallback((deletedId) => {
+    setIssues((prev) => prev.filter((issue) => String(issue.id) !== String(deletedId)));
+  }, []);
 
   const fetchIssues = useCallback(async () => {
     try {
@@ -259,7 +295,7 @@ export function IssueListPage() {
           <>
             <section className="issue-grid" aria-label="Issue list">
               {filteredIssues.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((issue) => (
-                <IssueCard key={issue.id} issue={issue} />
+                <IssueCard key={issue.id} issue={issue} onDelete={handleDeleteIssue} />
               ))}
             </section>
 
@@ -280,10 +316,13 @@ export function IssueListPage() {
 
 export function IssueDetailPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const { user, isAdmin } = useAuth();
   const [issue, setIssue] = useState(null);
   const [loading, setLoading] = useState(true);
   const [voteCount, setVoteCount] = useState(0);
   const [hasVoted, setHasVoted] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchIssueDetail = useCallback(async () => {
     try {
@@ -305,6 +344,18 @@ export function IssueDetailPage() {
     fetchIssueDetail();
   }, [fetchIssueDetail]);
 
+  async function handleDelete() {
+    if (!window.confirm(`ยืนยันการลบ "${issue?.title || 'issue นี้'}"?`)) return;
+    try {
+      setDeleting(true);
+      await api.delete(`/issues/${id}`);
+      navigate('/issues');
+    } catch (err) {
+      window.alert(err.response?.data?.error || 'ลบไม่สำเร็จ');
+      setDeleting(false);
+    }
+  }
+
   if (loading) {
     return <p className="issue-message">กำลังโหลด...</p>;
   }
@@ -315,6 +366,8 @@ export function IssueDetailPage() {
 
   const statusLabel = getStatusLabel(issue.status);
   const imageUrl = issue.image_url || null;
+  const isOwner = user && String(user.id) === String(issue.user_id);
+  const canDelete = isAdmin || isOwner;
 
   return (
     <main className="issue-layout">
@@ -326,15 +379,27 @@ export function IssueDetailPage() {
             <span className={`status-badge ${getStatusClass(issue.status)}`}>
               {statusLabel}
             </span>
-            <VoteButton
-              issueId={id}
-              voteCount={voteCount}
-              voted={hasVoted}
-              onChange={({ voted, voteCount: nextCount }) => {
-                setHasVoted(voted);
-                setVoteCount(nextCount);
-              }}
-            />
+            <div className="issue-detail-header-actions">
+              <VoteButton
+                issueId={id}
+                voteCount={voteCount}
+                voted={hasVoted}
+                onChange={({ voted, voteCount: nextCount }) => {
+                  setHasVoted(voted);
+                  setVoteCount(nextCount);
+                }}
+              />
+              {canDelete && (
+                <button
+                  type="button"
+                  className="issue-delete-btn"
+                  onClick={handleDelete}
+                  disabled={deleting}
+                >
+                  {deleting ? 'กำลังลบ...' : 'ลบ issue'}
+                </button>
+              )}
+            </div>
           </div>
 
           <h1>{issue.title || UNTITLED_ISSUE}</h1>

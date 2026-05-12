@@ -2042,6 +2042,44 @@ select {
   color: var(--color-text-inverse);
 }
 
+.issue-card-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+
+.issue-delete-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0 var(--space-4);
+  color: #fff;
+  background: #ef4444;
+  border: none;
+  border-radius: var(--radius-full);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.issue-delete-btn:hover:not(:disabled) {
+  background: #dc2626;
+}
+
+.issue-delete-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.issue-detail-header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
 .issue-message {
   padding: var(--space-8);
   color: var(--color-text-muted);

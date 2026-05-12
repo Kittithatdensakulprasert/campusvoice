@@ -166,6 +166,21 @@ export default function AdminPage() {
     }
   };
 
+  const handleDeleteIssue = async (id) => {
+    const target = issues.find((item) => item.id === id);
+    const ok = window.confirm(`ยืนยันการลบ "${target?.title || 'issue นี้'}"?`);
+    if (!ok) return;
+    try {
+      setUpdatingId(id);
+      await api.delete(`/issues/${id}`);
+      setIssues((prev) => prev.filter((item) => item.id !== id));
+    } catch (err) {
+      window.alert(err.response?.data?.error || 'ลบ issue ไม่สำเร็จ');
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
   const handleChangeRole = async (targetUser, nextRole) => {
     const currentRole = targetUser.role || 'user';
     if (currentRole === nextRole) return;
@@ -251,6 +266,7 @@ export default function AdminPage() {
               issues={issues}
               updatingId={updatingId}
               onChangeStatus={handleChangeStatus}
+              onDeleteIssue={handleDeleteIssue}
             />
           ) : null}
         </section>
