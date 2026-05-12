@@ -68,7 +68,8 @@ export default function LoginPage() {
     setIsSubmitting(true);
 
     try {
-      const { data } = await api.post('/auth/login-tu', values);
+      const loginEndpoint = values.email.includes('@') ? '/auth/login' : '/auth/login-tu';
+      const { data } = await api.post(loginEndpoint, values);
       const payload = getLoginPayload(data);
 
       if (!payload.token || !payload.user) {

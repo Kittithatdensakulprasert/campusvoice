@@ -12,12 +12,12 @@ async function seedAdmin() {
   await connectDB();
 
   const existing = await User.findOne({ email: ADMIN_EMAIL });
+  const passwordHash = await bcrypt.hash(ADMIN_PASSWORD, 10);
 
   if (existing) {
-    await User.updateOne({ email: ADMIN_EMAIL }, { role: 'admin' });
-    console.log(`Updated existing user "${ADMIN_EMAIL}" to role admin`);
+    await User.updateOne({ email: ADMIN_EMAIL }, { role: 'admin', password: passwordHash, auth_type: 'local' });
+    console.log(`Updated existing user "${ADMIN_EMAIL}" to role admin and reset password`);
   } else {
-    const passwordHash = await bcrypt.hash(ADMIN_PASSWORD, 10);
     await User.create({
       name:     ADMIN_NAME,
       email:    ADMIN_EMAIL,
