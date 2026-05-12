@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
+import SideNav from '../common/SideNav';
 import IssueTable from './IssueTable';
 import './AdminPage.css';
 
@@ -200,7 +201,9 @@ export default function AdminPage() {
   if (!user || !isStaff) return <div style={{ padding: '2rem' }}>หน้านี้สำหรับ staff/admin เท่านั้น</div>;
 
   return (
-    <main className="admin-page">
+    <main className="issue-layout">
+      <SideNav />
+      <section className="issue-content admin-page">
       <header className="admin-header">
         <div>
           <p className="admin-kicker">CampusVoice</p>
@@ -283,6 +286,7 @@ export default function AdminPage() {
           ) : null}
         </section>
       )}
+      </section>
     </main>
   );
 }
