@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import api from '../../api/axios';
+import SideNav from '../common/SideNav';
 import BarChart from './BarChart';
 import PieChart from './PieChart';
 import SearchBar from './SearchBar';
@@ -112,7 +113,9 @@ export default function DashboardPage() {
   );
 
   return (
-    <main className="dashboard-page">
+    <main className="issue-layout">
+      <SideNav />
+      <section className="issue-content dashboard-page">
       <header className="dashboard-header">
         <div>
           <p className="dashboard-kicker">CampusVoice</p>
@@ -176,6 +179,7 @@ export default function DashboardPage() {
             <p className="empty-state">{loadingSearch ? 'กำลังค้นหา...' : 'ไม่พบปัญหาที่ค้นหา'}</p>
           )}
         </div>
+      </section>
       </section>
     </main>
   );

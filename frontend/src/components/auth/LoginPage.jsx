@@ -77,8 +77,8 @@ export default function LoginPage() {
 
       login(payload.user, payload.token);
       setIsErrorMessage(false);
-      setMessage('เข้าสู่ระบบสำเร็จ กำลังพาไปหน้า issues');
-      navigate('/issues');
+      const isAdmin = payload.user?.role === 'admin' || payload.user?.role === 'staff';
+      navigate(isAdmin ? '/dashboard' : '/issues');
     } catch (error) {
       setIsErrorMessage(true);
       setMessage(
@@ -106,9 +106,9 @@ export default function LoginPage() {
                 <div className="hero-badge">
                   <span>🎓 สำหรับนักศึกษา</span>
                 </div>
-                <h1 className="auth-heading">แจ้งปัญหาในแคมปัส</h1>
+                <h1 className="auth-heading">แจ้งปัญหา</h1>
                 <p className="auth-subheading">
-                  ระบบแจ้งปัญหาออนไลน์ ติดตามความคืบหน้าได้ทุกที่ทุกเวลา
+                  ระบบแจ้งปัญหาออนไลน์ในมหาลัย ติดตามความคืบหน้าได้ทุกที่ทุกเวลา
                 </p>
               </div>
 

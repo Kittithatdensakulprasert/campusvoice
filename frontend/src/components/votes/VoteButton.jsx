@@ -40,17 +40,10 @@ export default function VoteButton({ issueId, voteCount = 0, voted = false, onCh
     setError('');
 
     try {
-      if (hasVoted) {
-        const { data } = await api.delete(`/votes/${issueId}`);
-        setCount(data.voteCount);
-        setHasVoted(false);
-        if (onChange) onChange({ voted: false, voteCount: data.voteCount });
-      } else {
-        const { data } = await api.post(`/votes/${issueId}`);
-        setCount(data.voteCount);
-        setHasVoted(true);
-        if (onChange) onChange({ voted: true, voteCount: data.voteCount });
-      }
+      const { data } = await api.post(`/votes/${issueId}`);
+      setCount(data.voteCount);
+      setHasVoted(data.voted);
+      if (onChange) onChange({ voted: data.voted, voteCount: data.voteCount });
     } catch (err) {
       setCount(prevCount);
       setHasVoted(prevVoted);

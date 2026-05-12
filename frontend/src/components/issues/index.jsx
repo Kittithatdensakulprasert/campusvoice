@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
 import Pagination from '../common/Pagination';
+import SideNav from '../common/SideNav';
 import VoteButton from '../votes/VoteButton';
 import CommentList from '../comments/CommentList';
 
@@ -63,83 +64,7 @@ function getIssuesFromResponse(data) {
 }
 
 function IssueLayoutNav() {
-  const navigate = useNavigate();
-  const { logout } = useAuth();
-
-  function handleLogout() {
-    logout();
-    navigate('/login');
-  }
-
-  return (
-    <>
-      <aside className="issue-side-nav" aria-label="Primary navigation">
-        <Link className="issue-side-nav__brand" to="/issues">CV</Link>
-
-        <Link
-          className="issue-side-nav__icon is-active"
-          to="/issues"
-          aria-label="รายการปัญหา"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="issue-side-nav__svg">
-            <path d="M11.47 3.841a.75.75 0 0 1 1.06 0l8.69 8.69a.75.75 0 1 0 1.06-1.061l-8.689-8.69a2.25 2.25 0 0 0-3.182 0l-8.69 8.69a.75.75 0 1 0 1.061 1.06l8.69-8.689Z" />
-            <path d="m12 5.432 8.159 8.159c.03.03.06.058.091.086v6.198c0 1.035-.84 1.875-1.875 1.875H15a.75.75 0 0 1-.75-.75v-4.5a.75.75 0 0 0-.75-.75h-3a.75.75 0 0 0-.75.75V21a.75.75 0 0 1-.75.75H5.625a1.875 1.875 0 0 1-1.875-1.875v-6.198a2.29 2.29 0 0 0 .091-.086L12 5.432Z" />
-          </svg>
-          <span className="issue-side-nav__tooltip">รายการปัญหา</span>
-        </Link>
-
-        <Link
-          className="issue-side-nav__icon"
-          to="/report"
-          aria-label="แจ้งปัญหา"
-        >
-          ＋
-          <span className="issue-side-nav__tooltip">แจ้งปัญหา</span>
-        </Link>
-
-        <button
-          type="button"
-          className="issue-side-nav__icon issue-side-nav__icon--logout"
-          aria-label="ออกจากระบบ"
-          onClick={handleLogout}
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="issue-side-nav__svg">
-            <path fillRule="evenodd" d="M16.5 3.75a1.5 1.5 0 0 1 1.5 1.5v13.5a1.5 1.5 0 0 1-1.5 1.5h-6a1.5 1.5 0 0 1-1.5-1.5V15a.75.75 0 0 0-1.5 0v3.75a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3V5.25a3 3 0 0 0-3-3h-6a3 3 0 0 0-3 3V9A.75.75 0 1 0 9 9V5.25a1.5 1.5 0 0 1 1.5-1.5h6ZM5.78 8.47a.75.75 0 0 0-1.06 0l-3 3a.75.75 0 0 0 0 1.06l3 3a.75.75 0 0 0 1.06-1.06l-1.72-1.72H15a.75.75 0 0 0 0-1.5H4.06l1.72-1.72a.75.75 0 0 0 0-1.06Z" clipRule="evenodd" />
-          </svg>
-          <span className="issue-side-nav__tooltip">ออกจากระบบ</span>
-        </button>
-      </aside>
-
-      <nav className="bottom-tab-bar" aria-label="Mobile navigation">
-        <Link className="bottom-tab-bar__item is-active" to="/issues" aria-label="หน้าหลัก">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M11.47 3.841a.75.75 0 0 1 1.06 0l8.69 8.69a.75.75 0 1 0 1.06-1.061l-8.689-8.69a2.25 2.25 0 0 0-3.182 0l-8.69 8.69a.75.75 0 1 0 1.061 1.06l8.69-8.689Z" />
-            <path d="m12 5.432 8.159 8.159c.03.03.06.058.091.086v6.198c0 1.035-.84 1.875-1.875 1.875H15a.75.75 0 0 1-.75-.75v-4.5a.75.75 0 0 0-.75-.75h-3a.75.75 0 0 0-.75.75V21a.75.75 0 0 1-.75.75H5.625a1.875 1.875 0 0 1-1.875-1.875v-6.198a2.29 2.29 0 0 0 .091-.086L12 5.432Z" />
-          </svg>
-          หน้าหลัก
-        </Link>
-
-        <Link className="bottom-tab-bar__item" to="/report" aria-label="แจ้งปัญหา">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-            <path fillRule="evenodd" d="M12 3.75a.75.75 0 0 1 .75.75v6.75h6.75a.75.75 0 0 1 0 1.5h-6.75v6.75a.75.75 0 0 1-1.5 0v-6.75H4.5a.75.75 0 0 1 0-1.5h6.75V4.5a.75.75 0 0 1 .75-.75Z" clipRule="evenodd" />
-          </svg>
-          แจ้งปัญหา
-        </Link>
-
-        <button
-          type="button"
-          className="bottom-tab-bar__item"
-          aria-label="ออกจากระบบ"
-          onClick={handleLogout}
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-            <path fillRule="evenodd" d="M16.5 3.75a1.5 1.5 0 0 1 1.5 1.5v13.5a1.5 1.5 0 0 1-1.5 1.5h-6a1.5 1.5 0 0 1-1.5-1.5V15a.75.75 0 0 0-1.5 0v3.75a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3V5.25a3 3 0 0 0-3-3h-6a3 3 0 0 0-3 3V9A.75.75 0 1 0 9 9V5.25a1.5 1.5 0 0 1 1.5-1.5h6ZM5.78 8.47a.75.75 0 0 0-1.06 0l-3 3a.75.75 0 0 0 0 1.06l3 3a.75.75 0 0 0 1.06-1.06l-1.72-1.72H15a.75.75 0 0 0 0-1.5H4.06l1.72-1.72a.75.75 0 0 0 0-1.06Z" clipRule="evenodd" />
-          </svg>
-          ออกจากระบบ
-        </button>
-      </nav>
-    </>
-  );
+  return <SideNav />;
 }
 
 function IssueTopBar({ searchText, onSearchChange }) {
@@ -323,7 +248,7 @@ export function IssueListPage() {
           <div className="issue-loading">
             <div className="loading-spinner">
               <svg className="spinning-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 0 0 4.582 9H4m0 11v-5h.582m0 0a8.001 8.001 0 0 0 15.356-2H20m0 0v5" />
               </svg>
             </div>
             <p>กำลังดำเนินการ...</p>
@@ -367,7 +292,7 @@ export function IssueDetailPage() {
       const issueData = res.data;
       setIssue(issueData);
       setVoteCount(getIssueVoteCount(issueData));
-      setHasVoted(issueData.voted ?? false);
+      setHasVoted(!!issueData.voted);
     } catch (err) {
       console.error(err);
       setIssue(null);
