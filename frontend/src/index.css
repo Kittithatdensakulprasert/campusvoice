@@ -131,7 +131,7 @@ select {
   gap: var(--space-3);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-semibold);
-  letter-spacing: 0.08em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 
@@ -151,13 +151,13 @@ select {
   margin-top: var(--space-6);
   font-family: var(--font-family-heading);
   font-size: clamp(2.35rem, 5vw, 4.35rem);
-  line-height: 1.40;
+  line-height: var(--line-height-tight);
 }
 
 .auth-subheading {
   margin-top: var(--space-4);
   max-width: 32rem;
-  color: rgba(255, 255, 255, 0.78);
+  color: rgba(255, 255, 255, 0.8);
   font-size: var(--font-size-lg);
 }
 
@@ -172,36 +172,36 @@ select {
   grid-template-columns: auto 1fr auto;
   gap: var(--space-3);
   align-items: start;
-  padding: 1rem 1.1rem;
-  border-radius: 1.15rem;
+  padding: var(--space-4) var(--space-5);
+  border-radius: var(--radius-xl);
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(10px);
 }
 
 .auth-feature-dot {
-  width: 0.75rem;
-  height: 0.75rem;
-  margin-top: 0.45rem;
+  width: var(--space-3);
+  height: var(--space-3);
+  margin-top: var(--space-1);
   border-radius: var(--radius-full);
   background: var(--color-accent-300);
-  box-shadow: 0 0 0 0.35rem rgba(250, 204, 21, 0.18);
+  box-shadow: 0 0 0 var(--space-1) rgba(250, 204, 21, 0.18);
 }
 
 .auth-feature-copy strong {
   display: block;
-  margin-bottom: 0.15rem;
+  margin-bottom: var(--space-1);
 }
 
 .auth-feature-copy p {
-  color: rgba(255, 255, 255, 0.78);
+  color: rgba(255, 255, 255, 0.8);
   font-size: var(--font-size-sm);
 }
 
 .auth-feature-number {
   font-family: var(--font-family-heading);
   color: rgba(255, 255, 255, 0.36);
-  font-size: 1.25rem;
+  font-size: var(--font-size-xl);
 }
 
 .auth-card {
@@ -247,7 +247,7 @@ select {
   color: var(--color-primary-700);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-semibold);
-  letter-spacing: 0.08em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 
@@ -280,8 +280,8 @@ select {
 
 .auth-switcher {
   display: inline-flex;
-  padding: 0.3rem;
-  gap: 0.3rem;
+  padding: var(--space-1);
+  gap: var(--space-1);
   border-radius: var(--radius-full);
   background: rgba(15, 23, 42, 0.06);
   border: 1px solid rgba(15, 23, 42, 0.08);
@@ -292,8 +292,8 @@ select {
   align-items: center;
   justify-content: center;
   min-width: 5.5rem;
-  min-height: 2.3rem;
-  padding: 0 0.9rem;
+  min-height: 2.25rem;
+  padding: 0 var(--space-4);
   border-radius: var(--radius-full);
   color: var(--color-text-muted);
   font-size: var(--font-size-sm);
@@ -341,7 +341,7 @@ select {
   border-radius: var(--radius-lg);
   background: rgba(248, 251, 255, 0.88);
   color: var(--color-text);
-  padding: 1.125rem 1.25rem;
+  padding: var(--space-4) var(--space-5);
   font-size: var(--font-size-md);
   transition:
     border-color var(--transition-fast),
@@ -675,8 +675,8 @@ select {
 }
 
 .auth-kpi {
-  padding: 1rem;
-  border-radius: 1.15rem;
+  padding: var(--space-4);
+  border-radius: var(--radius-xl);
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
@@ -684,13 +684,13 @@ select {
 .auth-kpi strong {
   display: block;
   font-family: var(--font-family-heading);
-  font-size: 1.35rem;
+  font-size: var(--font-size-2xl);
 }
 
 .auth-kpi span {
   display: block;
-  margin-top: 0.2rem;
-  color: rgba(255, 255, 255, 0.78);
+  margin-top: var(--space-1);
+  color: rgba(255, 255, 255, 0.8);
   font-size: var(--font-size-sm);
 }
 
@@ -698,8 +698,8 @@ select {
   display: grid;
   gap: var(--space-3);
   margin-top: var(--space-7);
-  padding: 1rem;
-  border-radius: 1.4rem;
+  padding: var(--space-4);
+  border-radius: var(--radius-2xl);
   background: rgba(2, 6, 23, 0.18);
   border: 1px solid rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(14px);
@@ -708,7 +708,7 @@ select {
 .auth-preview__topbar {
   display: flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: var(--space-2);
 }
 
 .auth-preview__dot {
@@ -1181,10 +1181,23 @@ select {
   .auth-layout {
     grid-template-columns: minmax(0, 1.1fr) minmax(26rem, 0.9fr);
     gap: var(--space-8);
+    align-items: stretch;
   }
 
   .auth-panel {
     min-height: 46rem;
+  }
+
+  .auth-card {
+    align-self: stretch;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .auth-form-card .card__body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
   }
 
   .auth-panel-content {

@@ -292,7 +292,7 @@ export function IssueListPage() {
           <div className="issue-loading">
             <div className="loading-spinner">
               <svg className="spinning-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1 1.06-1.061l-8.689-8.69a2.25 2.25 0 0 0-3.182 0l-8.69 8.69a2.25 2.25 0 0 .091-.086L12 5.432Z"></path>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 0 0 4.582 9H4m0 11v-5h.582m0 0a8.001 8.001 0 0 0 15.356-2H20m0 0v5" />
               </svg>
             </div>
             <p>กำลังดำเนินการ...</p>
@@ -371,7 +371,7 @@ export function IssueDetailPage() {
               {statusLabel}
             </span>
             <VoteButton
-              id={id}
+              issueId={id}
               voteCount={voteCount}
               voted={hasVoted}
               onChange={({ voted, voteCount: nextCount }) => {
@@ -403,7 +403,7 @@ export function IssueDetailPage() {
 
         </article>
 
-        <CommentList id={id} />
+        <CommentList issueId={id} />
       </section>
     </main>
   );
