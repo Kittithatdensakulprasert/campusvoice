@@ -7,10 +7,10 @@ import StatsCard from './StatsCard';
 import './dashboard.css';
 
 const STATUS_LABELS = {
-  open: 'Open',
-  in_progress: 'In progress',
-  resolved: 'Resolved',
-  closed: 'Closed'
+  open: 'รอดำเนินการ',
+  in_progress: 'กำลังดำเนินการ',
+  resolved: 'แก้ไขแล้ว',
+  closed: 'เสร็จสิ้น'
 };
 
 const SEARCH_LIMIT = 50;
@@ -23,14 +23,14 @@ function getStatsErrorMessage(error) {
   const status = error.response?.status;
 
   if (status === 401) {
-    return 'Please log in as admin or staff to view dashboard stats.';
+    return 'กรุณาเข้าสู่ระบบในฐานะ admin หรือ staff เพื่อดูสถิติ';
   }
 
   if (status === 403) {
-    return 'Only admin or staff can view dashboard stats.';
+    return 'เฉพาะ admin หรือ staff เท่านั้นที่สามารถดูสถิติได้';
   }
 
-  return 'Unable to load dashboard stats.';
+  return 'ไม่สามารถโหลดข้อมูลสถิติได้';
 }
 
 export default function DashboardPage() {
@@ -85,7 +85,7 @@ export default function DashboardPage() {
         }
       } catch (requestError) {
         if (active && requestError.name !== 'CanceledError') {
-          setError('Unable to search issues.');
+          setError('ไม่สามารถค้นหาปัญหาได้');
         }
       } finally {
         if (active) {
@@ -103,10 +103,10 @@ export default function DashboardPage() {
 
   const statCards = useMemo(
     () => [
-      { label: 'Total issues', value: stats.totalIssues, tone: 'blue' },
-      { label: 'Open', value: getStatusCount(stats.byStatus, 'open'), tone: 'orange' },
-      { label: 'In progress', value: getStatusCount(stats.byStatus, 'in_progress'), tone: 'green' },
-      { label: 'Resolved', value: getStatusCount(stats.byStatus, 'resolved'), tone: 'sky' }
+      { label: 'ปัญหาทั้งหมด', value: stats.totalIssues, tone: 'blue' },
+      { label: 'รอดำเนินการ', value: getStatusCount(stats.byStatus, 'open'), tone: 'orange' },
+      { label: 'กำลังดำเนินการ', value: getStatusCount(stats.byStatus, 'in_progress'), tone: 'green' },
+      { label: 'แก้ไขแล้ว', value: getStatusCount(stats.byStatus, 'resolved'), tone: 'sky' }
     ],
     [stats]
   );
@@ -116,7 +116,7 @@ export default function DashboardPage() {
       <header className="dashboard-header">
         <div>
           <p className="dashboard-kicker">CampusVoice</p>
-          <h1>Search & Dashboard</h1>
+          <h1>ค้นหาและแดชบอร์ด</h1>
         </div>
       </header>
 
@@ -135,8 +135,8 @@ export default function DashboardPage() {
 
       <section className="search-panel" aria-label="Search issues">
         <div className="search-panel__header">
-          <h2>Search Issues</h2>
-          <span>{loadingSearch ? 'Loading...' : `${issues.length} results`}</span>
+          <h2>ค้นหาปัญหา</h2>
+          <span>{loadingSearch ? 'กำลังโหลด...' : `${issues.length} รายการ`}</span>
         </div>
 
         <SearchBar
@@ -158,22 +158,22 @@ export default function DashboardPage() {
                 </div>
                 <dl>
                   <div>
-                    <dt>Category</dt>
-                    <dd>{issue.category || 'Uncategorized'}</dd>
+                    <dt>หมวดหมู่</dt>
+                    <dd>{issue.category || 'ไม่มีหมวดหมู่'}</dd>
                   </div>
                   <div>
-                    <dt>Status</dt>
+                    <dt>สถานะ</dt>
                     <dd>{STATUS_LABELS[issue.status] || issue.status}</dd>
                   </div>
                   <div>
-                    <dt>Votes</dt>
+                    <dt>โหวต</dt>
                     <dd>{issue.votes ?? issue.vote_count ?? 0}</dd>
                   </div>
                 </dl>
               </article>
             ))
           ) : (
-            <p className="empty-state">{loadingSearch ? 'Searching issues...' : 'No issues found.'}</p>
+            <p className="empty-state">{loadingSearch ? 'กำลังค้นหา...' : 'ไม่พบปัญหาที่ค้นหา'}</p>
           )}
         </div>
       </section>

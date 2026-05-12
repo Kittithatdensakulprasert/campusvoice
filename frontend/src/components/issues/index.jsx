@@ -205,7 +205,7 @@ export function IssueCard({ issue }) {
       </p>
 
       <div className="issue-meta">
-        <span className="issue-category">{issue.category || 'Uncategorized'}</span>
+        <span className="issue-category">{issue.category || 'ไม่มีหมวดหมู่'}</span>
         <span>{formatIssueDate(issue.created_at)}</span>
       </div>
 
@@ -329,8 +329,6 @@ export function IssueDetailPage() {
   const [voteCount, setVoteCount] = useState(0);
   const [hasVoted, setHasVoted] = useState(false);
 
-  const issueId = id;
-
   const fetchIssueDetail = useCallback(async () => {
     try {
       setLoading(true);
@@ -352,11 +350,11 @@ export function IssueDetailPage() {
   }, [fetchIssueDetail]);
 
   if (loading) {
-    return <p className="issue-message">Loading issue detail...</p>;
+    return <p className="issue-message">กำลังโหลด...</p>;
   }
 
   if (!issue) {
-    return <p className="issue-message">Issue not found.</p>;
+    return <p className="issue-message">ไม่พบปัญหานี้</p>;
   }
 
   const statusLabel = getStatusLabel(issue.status);
@@ -373,7 +371,7 @@ export function IssueDetailPage() {
               {statusLabel}
             </span>
             <VoteButton
-              issueId={issueId}
+              id={id}
               voteCount={voteCount}
               voted={hasVoted}
               onChange={({ voted, voteCount: nextCount }) => {
@@ -405,7 +403,7 @@ export function IssueDetailPage() {
 
         </article>
 
-        <CommentList issueId={issueId} />
+        <CommentList id={id} />
       </section>
     </main>
   );

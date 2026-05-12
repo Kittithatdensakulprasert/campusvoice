@@ -238,20 +238,6 @@ export default function LoginPage() {
                 ) : null}
               </div>
 
-              <div className="form-options">
-                <label className="checkbox-label">
-                  <input
-                    type="checkbox"
-                    name="remember"
-                    className="checkbox-input"
-                  />
-                  <span className="checkbox-text">จดจำฉันไว้</span>
-                </label>
-                <span className="forgot-password-link disabled" title="คุณลักษณะนี้จะมาในเร็วๆ นี้">
-                  ลืมรหัสผ่าน?
-                </span>
-              </div>
-
               <div className="auth-inline-links">
                 <Link to="/register">ยังไม่มีบัญชี? สมัครเลย</Link>
               </div>

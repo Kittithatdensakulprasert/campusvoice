@@ -22,10 +22,10 @@ export default function PieChart({ data }) {
   return (
     <div className="chart-panel">
       <div className="chart-panel__header">
-        <h2>Issues by Category</h2>
+        <h2>ปัญหาตามหมวดหมู่</h2>
       </div>
       <div className="chart-panel__body">
-        {data.length ? <Pie data={chartData} /> : <p className="empty-state">No category data yet.</p>}
+        {data.length ? <Pie data={chartData} /> : <p className="empty-state">ยังไม่มีข้อมูลหมวดหมู่</p>}
       </div>
     </div>
   );

@@ -38,7 +38,7 @@ function App() {
         />
         <Route
           path="*"
-          element={<div style={{ padding: '2rem' }}>404 — Page Not Found</div>}
+          element={<div style={{ padding: '2rem' }}>404 — ไม่พบหน้าที่ต้องการ</div>}
         />
       </Routes>
     </div>
