@@ -20,14 +20,59 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor — redirect to login on 401
+// Response interceptor — enhanced error handling
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Handle 401 Unauthorized
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
       window.location.href = '/login';
+      return Promise.reject({
+        ...error,
+        userMessage: 'กรุณาเข้าสู่ระบบอีกครั้ง'
+      });
     }
+
+    // Handle 403 Forbidden
+    if (error.response?.status === 403) {
+      return Promise.reject({
+        ...error,
+        userMessage: 'คุณไม่มีสิทธิในการเข้าถึงหน้านี้'
+      });
+    }
+
+    // Handle 404 Not Found
+    if (error.response?.status === 404) {
+      return Promise.reject({
+        ...error,
+        userMessage: 'ไม่พบข้อมูลที่คุณต้องการ'
+      });
+    }
+
+    // Handle 500 Server Error
+    if (error.response?.status === 500) {
+      return Promise.reject({
+        ...error,
+        userMessage: 'เซิร์ฟเวอร์มีปัญหา กรุณาลองใหม่'
+      });
+    }
+
+    // Network errors
+    if (error.code === 'ECONNABORTED') {
+      return Promise.reject({
+        ...error,
+        userMessage: 'การเชื่อมต่อหมดเวลา กรุณาลองใหม่'
+      });
+    }
+
+    if (error.code === 'ERR_NETWORK' || error.code === 'ERR_INTERNET_DISCONNECTED') {
+      return Promise.reject({
+        ...error,
+        userMessage: 'ไม่สามารถเชื่อมต่อเซอร์เวอร์ กรุณาตรวจสอบการเน็ต'
+      });
+    }
+
     return Promise.reject(error);
   }
 );

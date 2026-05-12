@@ -1,18 +1,39 @@
 const express = require('express');
 const router = express.Router();
-// const pool = require('../db');
-// const verifyToken = require('../middleware/verifyToken');
+const mongoose = require('mongoose');
+const Issue = require('../models/Issue');
+const Vote = require('../models/Vote');
+const verifyToken = require('../middleware/verifyToken');
 
-// POST /api/votes/:issueId — toggle vote on an issue (1 user = 1 vote)
-router.post('/:issueId', async (req, res) => {
-  // TODO: Feature 4 — verifyToken, insert or delete vote record
-  res.status(501).json({ message: 'Vote endpoint — not yet implemented' });
-});
+// POST /api/votes/:issueId — toggle vote (add if not voted, remove if already voted)
+router.post('/:issueId', verifyToken, async (req, res) => {
+  const { issueId } = req.params;
 
-// DELETE /api/votes/:issueId — remove vote
-router.delete('/:issueId', async (req, res) => {
-  // TODO: Feature 4 — verifyToken, delete vote record
-  res.status(501).json({ message: 'Remove vote — not yet implemented' });
+  if (!mongoose.isValidObjectId(issueId)) {
+    return res.status(400).json({ error: 'Invalid issue ID' });
+  }
+
+  const userId = req.user.id;
+
+  try {
+    const issue = await Issue.findById(issueId);
+    if (!issue) return res.status(404).json({ error: 'Issue not found' });
+
+    const existing = await Vote.findOne({ user_id: userId, issue_id: issueId });
+
+    if (existing) {
+      await Vote.deleteOne({ _id: existing._id });
+      const voteCount = await Vote.countDocuments({ issue_id: issueId });
+      return res.json({ message: 'Vote removed', voteCount, voted: false });
+    }
+
+    await Vote.create({ user_id: userId, issue_id: issueId });
+    const voteCount = await Vote.countDocuments({ issue_id: issueId });
+    res.status(201).json({ message: 'Voted successfully', voteCount, voted: true });
+  } catch (error) {
+    console.error('Vote toggle error:', error);
+    res.status(500).json({ error: 'Failed to process vote' });
+  }
 });
 
 module.exports = router;

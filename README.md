@@ -1,87 +1,61 @@
-# 🎓 CampusVoice
-> ระบบสำรวจปัญหาและโหวตพัฒนาพื้นที่ในมหาวิทยาลัย
+# CampusVoice
+
+ระบบแจ้งปัญหาออนไลน์สำหรับนักศึกษาและบุคลากรในมหาวิทยาลัย — แจ้งปัญหา โหวต ติดตามสถานะ และจัดการโดยเจ้าหน้าที่ได้ในระบบเดียว
 
 [![Status](https://img.shields.io/badge/status-in%20development-yellow)](.)
 [![Course](https://img.shields.io/badge/course-คพ.363-blue)](.)
-[![Stack](https://img.shields.io/badge/stack-HTML%20%7C%20CSS%20%7C%20JS%20%7C%20React%20%7C%20Node-informational)](.)
+[![Stack](https://img.shields.io/badge/stack-React%20%7C%20Node.js%20%7C%20MongoDB-informational)](.)
 
 ---
 
-## 📌 เกี่ยวกับโปรเจกต์
-
-**CampusVoice** คือศูนย์กลางในการรวบรวมปัญหาและจัดลำดับความสำคัญด้วยเสียงของผู้ใช้งานในมหาวิทยาลัย ไม่ว่าจะเป็นปัญหาแอร์ไม่เย็น Wi-Fi หลุด ห้องน้ำไม่สะอาด หรืออาหารในโรงอาหาร นักศึกษาและบุคลากรสามารถแจ้งปัญหา โหวต และติดตามสถานะการแก้ไขได้ในระบบเดียว
-
----
-
-## ✨ ฟีเจอร์หลัก
+## ฟีเจอร์หลัก
 
 | ฟีเจอร์ | รายละเอียด |
 |--------|-----------|
-| 📝 แจ้งปัญหา | แจ้งพร้อมรายละเอียด รูปภาพ และสถานที่ |
-| 📋 รายการปัญหา | ดูปัญหาทั้งหมด กรองตามหมวดหมู่/สถานะ เรียงตามโหวต |
-| 👍 ระบบโหวต | Upvote ปัญหาที่ต้องการให้แก้ไข |
-| 💬 ความคิดเห็น | แสดงความคิดเห็นใต้แต่ละปัญหา |
-| 🔍 ค้นหา | ค้นหาหัวข้อปัญหาหรือสถานที่ |
-| 📊 Dashboard | สถิติและกราฟสรุปภาพรวมปัญหา |
-| 🔐 ระบบผู้ใช้ | Login / Logout พร้อม Role (Admin, Staff, User) |
-| 🛠️ Admin Panel | เปลี่ยนสถานะปัญหา (รอดำเนินการ / กำลังแก้ไข / เสร็จสิ้น) |
+| แจ้งปัญหา | แจ้งพร้อมรายละเอียด รูปภาพ หมวดหมู่ และสถานที่ |
+| รายการปัญหา | ดูปัญหาทั้งหมด กรองตามหมวดหมู่/สถานะ เรียงตามวันที่หรือโหวต |
+| ระบบโหวต | Upvote/Unvote ปัญหา (toggle) |
+| ความคิดเห็น | แสดงและลบความคิดเห็นใต้แต่ละปัญหา |
+| ค้นหา | ค้นหาชื่อ คำอธิบาย หมวดหมู่ และสถานที่ |
+| Dashboard | สถิติ กราฟ และค้นหาปัญหาสำหรับ Admin/Staff |
+| Admin Panel | เปลี่ยนสถานะปัญหาและจัดการ role ผู้ใช้ |
+| ระบบผู้ใช้ | Register / Login / Logout พร้อม role (user, staff, admin) |
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
-### Frontend
-- HTML5, CSS3 (Responsive Web Design)
-- JavaScript (ES6+)
-- React.js
+**Frontend:** React 18 + Vite, React Router v6, Axios
 
-### Backend
-- Node.js
-- Express.js
-- JWT Authentication + bcrypt
+**Backend:** Node.js, Express.js, Mongoose (MongoDB), JWT + bcrypt, Multer
 
-### Tools
-- Git & GitHub
-- Web Hosting (Deploy)
+**Database:** MongoDB
 
 ---
 
-## 👥 ทีมพัฒนา
-
-| คน | ชื่อ | รับผิดชอบ |
-|----|------|-----------|
-| 1 | (ชื่อ) | Project Lead + ระบบ Authentication |
-| 2 | (ชื่อ) | ระบบแจ้งปัญหา + อัปโหลดรูปภาพ |
-| 3 | (ชื่อ) | รายการปัญหา + Filter/Sort |
-| 4 | (ชื่อ) | ระบบโหวต + ความคิดเห็น |
-| 5 | (ชื่อ) | ระบบค้นหา + Dashboard สถิติ |
-| 6 | (ชื่อ) | Admin Panel + Web Hosting |
-
----
-
-## 📁 โครงสร้างโปรเจกต์
+## โครงสร้างโปรเจกต์
 
 ```
 campusvoice/
 ├── frontend/
 │   ├── index.html
 │   ├── vite.config.js
-│   ├── variables.css
+│   ├── variables.css          ← CSS design tokens
 │   └── src/
 │       ├── main.jsx
 │       ├── App.jsx
 │       ├── index.css
 │       ├── api/
-│       │   └── axios.js
+│       │   └── axios.js       ← Axios instance (baseURL: /api)
 │       ├── context/
-│       │   └── AuthContext.jsx       ← useAuth() hook อยู่ที่นี่
+│       │   └── AuthContext.jsx
 │       └── components/
-│           ├── auth/                 ← Feature 1 (มิว)
-│           ├── issues/               ← Feature 2 (แฮม), 3 (ครีม)
-│           ├── votes/                ← Feature 4 (หนุ่ม)
-│           ├── comments/             ← Feature 4 (หนุ่ม)
-│           ├── admin/                ← Feature 5 (ไผ่), 6 (mark)
-│           └── shared/               ← ใช้ร่วมกัน
+│           ├── auth/          ← LoginPage, RegisterPage
+│           ├── issues/        ← IssueListPage, IssueDetailPage, ReportIssuePage
+│           ├── votes/         ← VoteButton
+│           ├── comments/      ← CommentList
+│           ├── admin/         ← DashboardPage, AdminPage
+│           └── common/        ← SideNav, Pagination
 │
 └── backend/
     ├── server.js
@@ -92,82 +66,169 @@ campusvoice/
     │   ├── issues.js
     │   ├── votes.js
     │   ├── comments.js
-    │   └── admin.js                  ← รวม stats endpoint ไว้ที่นี่
+    │   └── admin.js
     ├── middleware/
     │   ├── verifyToken.js
-    │   └── roleGuard.js
+    │   ├── roleGuard.js
+    │   └── upload.js          ← Multer config
     ├── models/
-    │   └── schema.sql                ← MySQL schema (4 tables)
-    └── uploads/                      ← รูปภาพที่ upload (gitignored)
+    │   ├── User.js
+    │   ├── Issue.js
+    │   ├── Vote.js
+    │   └── Comment.js
+    ├── lib/
+    │   └── issueHelpers.js    ← formatIssues, buildFilter, getPagination
+    ├── repositories/
+    │   └── authRepository.js
+    ├── services/
+    │   └── authService.js
+    ├── scripts/
+    │   └── seedAdmin.js       ← สร้าง admin user ครั้งแรก
+    └── uploads/               ← รูปภาพที่ upload (gitignored)
 ```
 
 ---
 
-## 🚀 วิธีรันโปรเจกต์
+## การติดตั้งและรัน
+
+### ความต้องการเบื้องต้น
+
+- Node.js 18+
+- MongoDB (local หรือ MongoDB Atlas)
 
 ### 1. Clone repository
+
 ```bash
-git clone https://github.com/<your-org>/campusvoice.git
+git clone https://github.com/Kittithatdensakulprasert/campusvoice.git
 cd campusvoice
 ```
 
-### 2. รัน Backend
+### 2. ตั้งค่า Backend
+
 ```bash
 cd backend
 npm install
-cp .env.example .env   # แก้ไขค่า DB_HOST, DB_USER, DB_PASSWORD, JWT_SECRET
-mysql -u root -p < models/schema.sql
+cp .env.example .env
+```
+
+แก้ไขไฟล์ `.env`:
+
+```env
+PORT=5001
+MONGODB_URI=mongodb://localhost:27017/campusvoice
+JWT_SECRET=เปลี่ยนเป็น_random_string_ยาวๆ
+JWT_EXPIRES_IN=7d
+CLIENT_ORIGIN=http://localhost:5173
+
+# สำหรับสร้าง admin user ครั้งแรก
+ADMIN_EMAIL=admin@campusvoice.ac.th
+ADMIN_PASSWORD=ใส่รหัสผ่านที่ต้องการ
+ADMIN_NAME=Admin
+```
+
+รัน backend:
+
+```bash
 npm run dev
 ```
 
-### 3. รัน Frontend
+Backend จะรันที่ `http://localhost:5001`
+
+### 3. ตั้งค่า Frontend
+
 ```bash
-cd frontend
+cd ../frontend
 npm install
 npm run dev
 ```
 
 เปิดเบราว์เซอร์ที่ `http://localhost:5173`
 
+### 4. สร้าง Admin User (ครั้งแรก)
+
+```bash
+cd backend
+npm run seed:admin
+```
+
+คำสั่งนี้จะสร้างหรืออัปเดต user ตาม `ADMIN_EMAIL` / `ADMIN_PASSWORD` ใน `.env` ให้มี role เป็น `admin`
+
 ---
 
-## 🌐 API Endpoints
+## API Endpoints
 
-| Method | Endpoint | คำอธิบาย | Role |
+### Auth
+
+| Method | Endpoint | คำอธิบาย | Auth |
 |--------|----------|-----------|------|
 | POST | `/api/auth/register` | สมัครสมาชิก | Public |
 | POST | `/api/auth/login` | เข้าสู่ระบบ | Public |
-| GET | `/api/auth/me` | ข้อมูล user ปัจจุบัน | User |
+| GET | `/api/auth/me` | ดูข้อมูล user ปัจจุบัน | User |
+
+### Issues
+
+| Method | Endpoint | คำอธิบาย | Auth |
+|--------|----------|-----------|------|
 | GET | `/api/issues` | ดูรายการปัญหาทั้งหมด | Public |
-| POST | `/api/issues` | แจ้งปัญหาใหม่ | User |
+| GET | `/api/issues/search?q=&category=&status=` | ค้นหาปัญหา | Public |
 | GET | `/api/issues/:id` | ดูรายละเอียดปัญหา | Public |
-| GET | `/api/issues/search?q=` | ค้นหาปัญหา | Public |
+| POST | `/api/issues` | แจ้งปัญหาใหม่ (รองรับ multipart/form-data) | User |
 | PATCH | `/api/issues/:id/status` | เปลี่ยนสถานะปัญหา | Admin/Staff |
-| POST | `/api/votes/:issueId` | โหวตปัญหา | User |
-| DELETE | `/api/votes/:issueId` | ยกเลิกโหวต | User |
+| DELETE | `/api/issues/:id` | ลบปัญหา | Admin |
+
+### Votes
+
+| Method | Endpoint | คำอธิบาย | Auth |
+|--------|----------|-----------|------|
+| POST | `/api/votes/:issueId` | Toggle โหวต (โหวต/ยกเลิกโหวต) | User |
+
+### Comments
+
+| Method | Endpoint | คำอธิบาย | Auth |
+|--------|----------|-----------|------|
 | GET | `/api/comments/:issueId` | ดูความคิดเห็น | Public |
 | POST | `/api/comments/:issueId` | แสดงความคิดเห็น | User |
-| DELETE | `/api/comments/:id` | ลบความคิดเห็น | User/Admin |
-| GET | `/api/admin/stats` | ดูสถิติสรุป | Admin/Staff |
-| GET | `/api/admin/users` | จัดการผู้ใช้ | Admin |
+| DELETE | `/api/comments/:id` | ลบความคิดเห็น | เจ้าของ/Admin |
+
+### Admin
+
+| Method | Endpoint | คำอธิบาย | Auth |
+|--------|----------|-----------|------|
+| GET | `/api/admin/stats` | สถิติสรุปภาพรวม | Admin/Staff |
+| GET | `/api/admin/users` | รายชื่อผู้ใช้ทั้งหมด | Admin |
 | PATCH | `/api/admin/users/:id/role` | เปลี่ยน role ผู้ใช้ | Admin |
 
 ---
 
-## 🔀 Branch Strategy
+## Role และสิทธิ์การใช้งาน
+
+| Role | สิทธิ์ |
+|------|--------|
+| `user` | แจ้งปัญหา, โหวต, คอมเมนต์ |
+| `staff` | ทุกอย่างของ user + เปลี่ยนสถานะปัญหา + ดู dashboard |
+| `admin` | ทุกอย่างของ staff + จัดการ role ผู้ใช้ + ลบปัญหา |
+
+---
+
+## สถานะปัญหา
+
+| Status | ความหมาย |
+|--------|----------|
+| `open` | รอดำเนินการ — ปัญหาถูกแจ้งแล้ว ยังไม่มีใครรับงาน |
+| `in_progress` | กำลังดำเนินการ — staff รับงานแล้ว กำลังแก้ไข |
+| `resolved` | แก้ไขแล้ว — ดำเนินการเสร็จ รอการยืนยัน |
+| `closed` | ปิดงาน — จบกระบวนการทั้งหมด |
+
+---
+
+## Branch Strategy
 
 ```
-main          → production-ready code
-develop       → รวม feature ก่อน merge ขึ้น main
-feature/auth           → คน 1
-feature/report-issue   → คน 2
-feature/issue-list     → คน 3
-feature/vote-comment   → คน 4
-feature/search-dashboard → คน 5
-feature/admin          → คน 6
+main      → production-ready
+develop   → รวม feature ก่อน merge ขึ้น main
+feature/* → งานแต่ละฟีเจอร์
 ```
 
-### Git Workflow
 ```bash
 # เริ่มงานใหม่
 git checkout develop
@@ -178,23 +239,22 @@ git checkout -b feature/your-feature
 git add .
 git commit -m "feat: your message"
 git push origin feature/your-feature
-# → เปิด Pull Request → คน 1 review → merge ลง develop
+# เปิด Pull Request → review → merge ลง develop
 ```
 
 ---
 
-## 📊 เปรียบเทียบกับระบบที่มีอยู่
+## ทีมพัฒนา
 
-| ระบบ | แจ้งปัญหา | โหวต | จัดลำดับ | ติดตามสถานะ |
-|------|-----------|------|----------|-------------|
-| OpenChat TU | ✅ | ❌ | ❌ | ❌ |
-| เพจ อมธ. | ✅ | ❌ | ❌ | ❌ |
-| BaanTU | ✅ | ❌ | ❌ | ✅ |
-| **CampusVoice** | ✅ | ✅ | ✅ | ✅ |
+| คน | ชื่อ | รับผิดชอบ |
+|----|------|-----------|
+| 1 | (ชื่อ) | Project Lead + ระบบ Authentication |
+| 2 | (ชื่อ) | ระบบแจ้งปัญหา + อัปโหลดรูปภาพ |
+| 3 | (ชื่อ) | รายการปัญหา + Filter/Sort + Pagination |
+| 4 | (ชื่อ) | ระบบโหวต + ความคิดเห็น |
+| 5 | (ชื่อ) | ระบบค้นหา + Dashboard สถิติ |
+| 6 | (ชื่อ) | Admin Panel + Deployment |
 
 ---
 
-## 📝 License
-
-โปรเจกต์นี้เป็นส่วนหนึ่งของรายวิชา **คพ.363** ภาควิชาวิทยาการคอมพิวเตอร์
-ผู้สอน: ผศ.ดร.ฐาปนา บุญชู
+โปรเจกต์นี้เป็นส่วนหนึ่งของรายวิชา **คพ.363** ภาควิชาวิทยาการคอมพิวเตอร์ ผศ.ดร.ฐาปนา บุญชู
