@@ -1,5 +1,3 @@
-const Vote = require('../models/Vote');
-
 const DEFAULT_LIMIT = 50;
 const MAX_LIMIT = 100;
 
@@ -34,28 +32,4 @@ function getSortOption(sort) {
   return { created_at: -1 };
 }
 
-async function formatIssues(issues) {
-  const ids = issues.map(i => i._id);
-  const voteCounts = await Vote.aggregate([
-    { $match: { issue_id: { $in: ids } } },
-    { $group: { _id: '$issue_id', count: { $sum: 1 } } },
-  ]);
-  const voteMap = Object.fromEntries(voteCounts.map(v => [v._id.toString(), v.count]));
-
-  return issues.map(issue => ({
-    id:          issue._id,
-    user_id:     issue.user_id?._id ?? issue.user_id,
-    title:       issue.title,
-    description: issue.description,
-    category:    issue.category,
-    location:    issue.location,
-    image_url:   issue.image_url,
-    status:      issue.status,
-    created_at:  issue.created_at,
-    updated_at:  issue.updated_at,
-    author_name: issue.user_id?.name ?? null,
-    votes:       voteMap[issue._id.toString()] || 0,
-  }));
-}
-
-module.exports = { getPagination, buildFilter, getSortOption, formatIssues };
+module.exports = { getPagination, buildFilter, getSortOption };

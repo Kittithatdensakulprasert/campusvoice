@@ -1,124 +1,70 @@
 const express = require('express');
-const router = express.Router();
-const mongoose = require('mongoose');
-const User = require('../models/User');
-const Issue = require('../models/Issue');
 const verifyToken = require('../middleware/verifyToken');
 const roleGuard = require('../middleware/roleGuard');
+const { AdminServiceError, createAdminService } = require('../services/adminService');
 
-const STATUS_ORDER = ['open', 'in_progress', 'resolved', 'closed'];
-const ALLOWED_ROLES = ['user', 'staff', 'admin'];
-const ADMIN_USER_FIELDS = 'email name role avatar_url created_at updated_at';
+function handleAdminError(error, res, logLabel) {
+  if (error instanceof AdminServiceError) {
+    return res.status(error.statusCode).json({ error: error.message });
+  }
 
-function serializeUser(user) {
-  if (!user) return null;
-  const id = user._id?.toString?.() || user.id;
-  return { ...user, id };
+  console.error(`${logLabel} error:`, error);
+  return res.status(500).json({ error: logLabel });
 }
 
-// GET /api/admin/users - list all users (admin only)
-router.get('/users', verifyToken, roleGuard(['admin']), async (req, res) => {
-  try {
-    const users = await User.find({})
-      .select(ADMIN_USER_FIELDS)
-      .sort({ created_at: -1 })
-      .lean();
+const buildAdminRouter = ({
+  adminService = createAdminService(),
+  authMiddleware = verifyToken,
+  adminGuard = roleGuard(['admin']),
+  staffGuard = roleGuard(['admin', 'staff'])
+} = {}) => {
+  const router = express.Router();
 
-    res.json({ users: users.map(serializeUser) });
-  } catch (error) {
-    console.error('List users error:', error);
-    res.status(500).json({ error: 'Failed to load users' });
-  }
-});
+  // GET /api/admin/users - list all users (admin only)
+  router.get('/users', authMiddleware, adminGuard, async (req, res) => {
+    try {
+      return res.json(await adminService.listUsers());
+    } catch (error) {
+      return handleAdminError(error, res, 'Failed to load users');
+    }
+  });
 
-// PATCH /api/admin/users/:id/role - update user role (admin only)
-router.patch('/users/:id/role', verifyToken, roleGuard(['admin']), async (req, res) => {
-  const { id } = req.params;
-  const { role } = req.body;
+  // PATCH /api/admin/users/:id/role - update user role (admin only)
+  router.patch('/users/:id/role', authMiddleware, adminGuard, async (req, res) => {
+    try {
+      return res.json(await adminService.updateUserRole({
+        id: req.params.id,
+        role: req.body.role,
+        currentUserId: req.user.id
+      }));
+    } catch (error) {
+      return handleAdminError(error, res, 'Failed to update user role');
+    }
+  });
 
-  if (!mongoose.isValidObjectId(id)) {
-    return res.status(400).json({ error: 'Invalid user id' });
-  }
+  // DELETE /api/admin/users/:id - delete user account (admin only)
+  router.delete('/users/:id', authMiddleware, adminGuard, async (req, res) => {
+    try {
+      return res.json(await adminService.deleteUser({
+        id: req.params.id,
+        currentUserId: req.user.id
+      }));
+    } catch (error) {
+      return handleAdminError(error, res, 'Failed to delete user');
+    }
+  });
 
-  if (!ALLOWED_ROLES.includes(role)) {
-    return res.status(400).json({ error: 'Role must be one of: user, staff, admin' });
-  }
+  // GET /api/admin/stats
+  router.get('/stats', authMiddleware, staffGuard, async (req, res) => {
+    try {
+      return res.json(await adminService.getStats());
+    } catch (error) {
+      return handleAdminError(error, res, 'Failed to load dashboard stats');
+    }
+  });
 
-  if (id === req.user.id) {
-    return res.status(400).json({ error: 'Cannot change your own role' });
-  }
+  return router;
+};
 
-  try {
-    const user = await User.findByIdAndUpdate(id, { role }, { new: true })
-      .select(ADMIN_USER_FIELDS)
-      .lean();
-
-    if (!user) return res.status(404).json({ error: 'User not found' });
-
-    res.json({ message: 'Role updated', userId: id, role, user: serializeUser(user) });
-  } catch (error) {
-    console.error('Update user role error:', error);
-    res.status(500).json({ error: 'Failed to update user role' });
-  }
-});
-
-// DELETE /api/admin/users/:id - delete user account (admin only)
-router.delete('/users/:id', verifyToken, roleGuard(['admin']), async (req, res) => {
-  const { id } = req.params;
-  if (!mongoose.isValidObjectId(id)) {
-    return res.status(400).json({ error: 'Invalid user id' });
-  }
-
-  if (id === req.user.id) {
-    return res.status(400).json({ error: 'Cannot delete your own account from admin panel' });
-  }
-
-  try {
-    const user = await User.findByIdAndDelete(id)
-      .select(ADMIN_USER_FIELDS)
-      .lean();
-
-    if (!user) return res.status(404).json({ error: 'User not found' });
-
-    res.json({ message: 'User deleted', user: serializeUser(user) });
-  } catch (error) {
-    console.error('Delete user error:', error);
-    res.status(500).json({ error: 'Failed to delete user' });
-  }
-});
-
-// GET /api/admin/stats
-router.get('/stats', verifyToken, roleGuard(['admin', 'staff']), async (req, res) => {
-  try {
-    const totalIssues = await Issue.countDocuments();
-
-    const byCategory = await Issue.aggregate([
-      {
-        $group: {
-          _id: {
-            $cond: [{ $or: [{ $eq: ['$category', null] }, { $eq: ['$category', ''] }] }, 'Uncategorized', '$category']
-          },
-          count: { $sum: 1 },
-        },
-      },
-      { $project: { category: '$_id', count: 1, _id: 0 } },
-      { $sort: { count: -1 } },
-    ]);
-
-    const byStatusRaw = await Issue.aggregate([
-      { $group: { _id: '$status', count: { $sum: 1 } } },
-      { $project: { status: '$_id', count: 1, _id: 0 } },
-    ]);
-
-    const byStatus = STATUS_ORDER
-      .map(s => byStatusRaw.find(r => r.status === s))
-      .filter(Boolean);
-
-    res.json({ totalIssues, byCategory, byStatus });
-  } catch (error) {
-    console.error('Stats error:', error);
-    res.status(500).json({ error: 'Failed to load dashboard stats' });
-  }
-});
-
-module.exports = router;
+module.exports = buildAdminRouter();
+module.exports.buildAdminRouter = buildAdminRouter;
