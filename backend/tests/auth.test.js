@@ -2,6 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 
 process.env.JWT_SECRET = process.env.JWT_SECRET || 'test-secret';
+process.env.TU_API_KEY = process.env.TU_API_KEY || 'test-tu-key';
 
 const { AuthError, createAuthService, createRateLimiter } = require('../services/authService');
 const verifyToken = require('../middleware/verifyToken');
