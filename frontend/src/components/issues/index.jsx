@@ -323,6 +323,10 @@ export function IssueDetailPage() {
   const [voteCount, setVoteCount] = useState(0);
   const [hasVoted, setHasVoted] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editForm, setEditForm] = useState({ title: '', description: '', category: '', location: '' });
+  const [saving, setSaving] = useState(false);
+  const [editError, setEditError] = useState('');
 
   const fetchIssueDetail = useCallback(async () => {
     try {
@@ -343,6 +347,32 @@ export function IssueDetailPage() {
   useEffect(() => {
     fetchIssueDetail();
   }, [fetchIssueDetail]);
+
+  function startEditing() {
+    setEditForm({
+      title:       issue.title || '',
+      description: issue.description || '',
+      category:    issue.category || '',
+      location:    issue.location || '',
+    });
+    setEditError('');
+    setEditing(true);
+  }
+
+  async function handleSave(e) {
+    e.preventDefault();
+    setEditError('');
+    try {
+      setSaving(true);
+      const res = await api.patch(`/issues/${id}`, editForm);
+      setIssue((prev) => ({ ...prev, ...res.data.issue }));
+      setEditing(false);
+    } catch (err) {
+      setEditError(err.response?.data?.error || 'บันทึกไม่สำเร็จ');
+    } finally {
+      setSaving(false);
+    }
+  }
 
   async function handleDelete() {
     if (!window.confirm(`ยืนยันการลบ "${issue?.title || 'issue นี้'}"?`)) return;
@@ -367,6 +397,7 @@ export function IssueDetailPage() {
   const statusLabel = getStatusLabel(issue.status);
   const imageUrl = issue.image_url || null;
   const isOwner = user && String(user.id) === String(issue.user_id);
+  const canEdit = isAdmin || isOwner;
   const canDelete = isAdmin || isOwner;
 
   return (
@@ -389,7 +420,12 @@ export function IssueDetailPage() {
                   setVoteCount(nextCount);
                 }}
               />
-              {canDelete && (
+              {canEdit && !editing && (
+                <button type="button" className="issue-edit-btn" onClick={startEditing}>
+                  แก้ไข
+                </button>
+              )}
+              {canDelete && !editing && (
                 <button
                   type="button"
                   className="issue-delete-btn"
@@ -402,17 +438,76 @@ export function IssueDetailPage() {
             </div>
           </div>
 
-          <h1>{issue.title || UNTITLED_ISSUE}</h1>
-
-          <div className="issue-meta detail-meta">
-            <span>หมวดหมู่: {issue.category || 'ไม่มีหมวดหมู่'}</span>
-            <span>สถานที่: {issue.location || EMPTY_VALUE}</span>
-            <span>วันที่: {formatIssueDate(issue.created_at)}</span>
-          </div>
-
-          <p className="issue-detail-description">
-            {issue.description || EMPTY_VALUE}
-          </p>
+          {editing ? (
+            <form className="issue-edit-form" onSubmit={handleSave}>
+              <div className="issue-edit-field">
+                <label htmlFor="edit-title">หัวข้อปัญหา</label>
+                <input
+                  id="edit-title"
+                  type="text"
+                  maxLength={100}
+                  value={editForm.title}
+                  onChange={(e) => setEditForm((f) => ({ ...f, title: e.target.value }))}
+                />
+              </div>
+              <div className="issue-edit-field">
+                <label htmlFor="edit-description">รายละเอียด</label>
+                <textarea
+                  id="edit-description"
+                  rows={5}
+                  maxLength={500}
+                  value={editForm.description}
+                  onChange={(e) => setEditForm((f) => ({ ...f, description: e.target.value }))}
+                />
+              </div>
+              <div className="issue-edit-row">
+                <div className="issue-edit-field">
+                  <label htmlFor="edit-category">หมวดหมู่</label>
+                  <select
+                    id="edit-category"
+                    value={editForm.category}
+                    onChange={(e) => setEditForm((f) => ({ ...f, category: e.target.value }))}
+                  >
+                    <option value="">-- ไม่ระบุ --</option>
+                    {ISSUE_CATEGORIES.map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="issue-edit-field">
+                  <label htmlFor="edit-location">สถานที่</label>
+                  <input
+                    id="edit-location"
+                    type="text"
+                    maxLength={200}
+                    value={editForm.location}
+                    onChange={(e) => setEditForm((f) => ({ ...f, location: e.target.value }))}
+                  />
+                </div>
+              </div>
+              {editError && <p className="issue-edit-error">{editError}</p>}
+              <div className="issue-edit-actions">
+                <button type="button" className="issue-edit-cancel" onClick={() => setEditing(false)} disabled={saving}>
+                  ยกเลิก
+                </button>
+                <button type="submit" className="issue-edit-save" disabled={saving}>
+                  {saving ? 'กำลังบันทึก...' : 'บันทึก'}
+                </button>
+              </div>
+            </form>
+          ) : (
+            <>
+              <h1>{issue.title || UNTITLED_ISSUE}</h1>
+              <div className="issue-meta detail-meta">
+                <span>หมวดหมู่: {issue.category || 'ไม่มีหมวดหมู่'}</span>
+                <span>สถานที่: {issue.location || EMPTY_VALUE}</span>
+                <span>วันที่: {formatIssueDate(issue.created_at)}</span>
+              </div>
+              <p className="issue-detail-description">
+                {issue.description || EMPTY_VALUE}
+              </p>
+            </>
+          )}
 
           {imageUrl ? (
             <img

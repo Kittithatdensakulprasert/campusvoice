@@ -187,6 +187,64 @@ router.patch('/:id/status', verifyToken, roleGuard(['admin', 'staff']), async (r
 });
 
 // DELETE /api/issues/:id — admin สามารถลบได้ทุก issue, user ลบได้เฉพาะของตัวเอง
+// PATCH /api/issues/:id — แก้ไขเนื้อหา issue (เจ้าของหรือ admin)
+router.patch('/:id', verifyToken, async (req, res) => {
+  if (!mongoose.isValidObjectId(req.params.id)) {
+    return res.status(400).json({ error: 'Invalid issue id' });
+  }
+
+  try {
+    const issue = await Issue.findById(req.params.id);
+    if (!issue) return res.status(404).json({ error: 'Issue not found' });
+
+    const isAdmin = req.user.role === 'admin';
+    const isOwner = issue.user_id.toString() === req.user.id;
+    if (!isAdmin && !isOwner) {
+      return res.status(403).json({ error: 'ไม่มีสิทธิ์แก้ไข issue นี้' });
+    }
+
+    const { title, description, category, location } = req.body;
+    const updates = {};
+
+    if (title !== undefined) {
+      if (!title.trim()) return res.status(400).json({ error: 'กรุณากรอกหัวข้อปัญหา' });
+      if (title.trim().length > 100) return res.status(400).json({ error: 'หัวข้อปัญหาต้องไม่เกิน 100 ตัวอักษร' });
+      updates.title = title.trim();
+    }
+    if (description !== undefined) {
+      if (!description.trim()) return res.status(400).json({ error: 'กรุณากรอกรายละเอียดปัญหา' });
+      if (description.trim().length > 500) return res.status(400).json({ error: 'รายละเอียดต้องไม่เกิน 500 ตัวอักษร' });
+      updates.description = description.trim();
+    }
+    if (category !== undefined) {
+      if (category && !VALID_CATEGORIES.includes(category)) return res.status(400).json({ error: 'หมวดหมู่ไม่ถูกต้อง' });
+      updates.category = category || null;
+    }
+    if (location !== undefined) {
+      if (location && location.trim().length > 200) return res.status(400).json({ error: 'สถานที่ต้องไม่เกิน 200 ตัวอักษร' });
+      updates.location = location?.trim() || null;
+    }
+
+    const updated = await Issue.findByIdAndUpdate(req.params.id, updates, { new: true });
+
+    res.json({
+      message: 'Issue updated',
+      issue: {
+        id:          updated._id,
+        title:       updated.title,
+        description: updated.description,
+        category:    updated.category,
+        location:    updated.location,
+        status:      updated.status,
+        updated_at:  updated.updated_at,
+      },
+    });
+  } catch (error) {
+    console.error('Update issue content error:', error);
+    res.status(500).json({ error: 'Failed to update issue' });
+  }
+});
+
 router.delete('/:id', verifyToken, async (req, res) => {
   if (!mongoose.isValidObjectId(req.params.id)) {
     return res.status(400).json({ error: 'Invalid issue id' });
