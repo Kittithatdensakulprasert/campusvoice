@@ -38,6 +38,14 @@ export default function CommentList({ issueId }) {
     setComments((prev) => prev.filter((c) => c.id !== commentId));
   };
 
+  const handleUpdated = (updatedComment) => {
+    setComments((prev) =>
+      prev.map((comment) =>
+        comment.id === updatedComment.id ? { ...comment, ...updatedComment } : comment
+      )
+    );
+  };
+
   return (
     <section className="comment-list">
       <h3 className="comment-list__title">
@@ -57,6 +65,7 @@ export default function CommentList({ issueId }) {
             key={comment.id}
             comment={comment}
             onDeleted={handleDeleted}
+            onUpdated={handleUpdated}
           />
         ))}
       </div>

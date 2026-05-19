@@ -335,3 +335,63 @@ test('issues DELETE /:id invalid id, forbidden, and 500', async (t) => {
 
   t.after(() => { Issue.findById = oFindById; });
 });
+
+test('issues PATCH /:id validates, updates, and enforces permission', async (t) => {
+  const handler = getFinalHandler('/:id', 'patch');
+
+  const badRes = createResponse();
+  await handler({ params: { id: 'bad-id' }, body: {}, user: { id: 'u1', role: 'user' } }, badRes);
+  assert.equal(badRes.statusCode, 400);
+
+  const oFindById = Issue.findById;
+  const oFindByIdAndUpdate = Issue.findByIdAndUpdate;
+  const oAggregate = Vote.aggregate;
+
+  Issue.findById = async () => ({ user_id: { toString: () => 'owner-id' } });
+  const forbRes = createResponse();
+  await handler({
+    params: { id: '507f1f77bcf86cd799439011' },
+    body: { title: 'New title', description: 'New desc' },
+    user: { id: 'other-user', role: 'user' }
+  }, forbRes);
+  assert.equal(forbRes.statusCode, 403);
+
+  Issue.findByIdAndUpdate = () => ({
+    populate() { return this; },
+    async lean() {
+      return {
+        _id: '507f1f77bcf86cd799439011',
+        title: 'New title',
+        description: 'New desc',
+        user_id: { _id: 'owner-id', name: 'Owner' }
+      };
+    }
+  });
+  Vote.aggregate = async () => [];
+  const okRes = createResponse();
+  await handler({
+    params: { id: '507f1f77bcf86cd799439011' },
+    body: { title: 'New title', description: 'New desc' },
+    user: { id: 'owner-id', role: 'user' }
+  }, okRes);
+  assert.equal(okRes.statusCode, 200);
+  assert.equal(okRes.body.issue.title, 'New title');
+
+  Issue.findByIdAndUpdate = () => ({
+    populate() { return this; },
+    async lean() { throw new Error('boom'); }
+  });
+  const errRes = createResponse();
+  await handler({
+    params: { id: '507f1f77bcf86cd799439011' },
+    body: { title: 'New title', description: 'New desc' },
+    user: { id: 'owner-id', role: 'user' }
+  }, errRes);
+  assert.equal(errRes.statusCode, 500);
+
+  t.after(() => {
+    Issue.findById = oFindById;
+    Issue.findByIdAndUpdate = oFindByIdAndUpdate;
+    Vote.aggregate = oAggregate;
+  });
+});
