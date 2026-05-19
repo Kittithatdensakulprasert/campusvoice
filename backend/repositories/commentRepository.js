@@ -8,14 +8,13 @@ const createCommentRepository = () => ({
       .lean();
   },
 
-  // คืนค่า Mongoose Document สำหรับเช็ค ownership และ deleteOne()
   async findDocumentById(id) {
     return Comment.findById(id);
   },
 
   async create(userId, issueId, body) {
     const comment = await Comment.create({ user_id: userId, issue_id: issueId, body });
-    return comment.populate('user_id', 'name');
+    return await comment.populate('user_id', 'name');
   },
 });
 

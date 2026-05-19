@@ -1,6 +1,5 @@
 const fs = require('fs');
 const path = require('path');
-const jwt = require('jsonwebtoken');
 const { getPagination, buildFilter, getSortOption } = require('../lib/issueHelpers');
 const { createIssueRepository } = require('../repositories/issueRepository');
 const { createVoteRepository } = require('../repositories/voteRepository');
@@ -46,18 +45,15 @@ const createIssueService = ({
     return { issues, limit, offset };
   },
 
-  async getIssueById(id, authHeader) {
+  // userId คือ decoded user id จาก route (null ถ้าไม่ได้ login)
+  async getIssueById(id, userId) {
     const issue = await issueRepository.findById(id);
     if (!issue) throw new IssueError('Issue not found', 404);
 
     let voted = false;
-    if (authHeader) {
-      try {
-        const token = authHeader.split(' ')[1];
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        const existing = await voteRepository.findByUserAndIssue(decoded.id, id);
-        voted = !!existing;
-      } catch (_) {}
+    if (userId) {
+      const existing = await voteRepository.findByUserAndIssue(userId, id);
+      voted = !!existing;
     }
 
     return { ...issue, voted };
