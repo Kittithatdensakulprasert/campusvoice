@@ -94,4 +94,53 @@ router.delete('/:id', verifyToken, async (req, res) => {
   }
 });
 
+// PATCH /api/comments/:id
+router.patch('/:id', verifyToken, async (req, res) => {
+  if (!mongoose.isValidObjectId(req.params.id)) {
+    return res.status(400).json({ error: 'Invalid comment ID' });
+  }
+
+  const body = req.body?.body?.trim?.();
+  if (typeof body !== 'string' || body === '') {
+    return res.status(400).json({ error: 'Comment body is required' });
+  }
+  if (body.length > 1000) {
+    return res.status(400).json({ error: 'Comment body must be 1000 characters or fewer' });
+  }
+
+  try {
+    const comment = await Comment.findById(req.params.id);
+    if (!comment) return res.status(404).json({ error: 'Comment not found' });
+
+    const isOwner = comment.user_id.toString() === req.user.id;
+    const isAdmin = req.user.role === 'admin';
+    if (!isOwner && !isAdmin) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    const updated = await Comment.findByIdAndUpdate(
+      req.params.id,
+      { body },
+      { new: true }
+    )
+      .populate('user_id', 'name')
+      .lean();
+
+    res.json({
+      message: 'Comment updated',
+      comment: {
+        id: updated._id,
+        body: updated.body,
+        created_at: updated.created_at,
+        updated_at: updated.updated_at,
+        user_id: updated.user_id?._id,
+        user_name: updated.user_id?.name,
+      },
+    });
+  } catch (error) {
+    console.error('Update comment error:', error);
+    res.status(500).json({ error: 'Failed to update comment' });
+  }
+});
+
 module.exports = router;
