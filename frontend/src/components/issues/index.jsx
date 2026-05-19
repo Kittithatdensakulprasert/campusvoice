@@ -317,7 +317,7 @@ export function IssueListPage() {
 export function IssueDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, isStaff } = useAuth();
   const [issue, setIssue] = useState(null);
   const [loading, setLoading] = useState(true);
   const [voteCount, setVoteCount] = useState(0);
@@ -362,9 +362,25 @@ export function IssueDetailPage() {
   async function handleSave(e) {
     e.preventDefault();
     setEditError('');
+
+    const hasChanges =
+      editForm.title.trim() !== (issue.title || '') ||
+      editForm.description.trim() !== (issue.description || '') ||
+      editForm.category !== (issue.category || '') ||
+      editForm.location.trim() !== (issue.location || '');
+    if (!hasChanges) {
+      setEditError('ไม่มีข้อมูลที่ต้องการแก้ไข');
+      return;
+    }
+
     try {
       setSaving(true);
-      const res = await api.patch(`/issues/${id}`, editForm);
+      const res = await api.patch(`/issues/${id}`, {
+        title:       editForm.title.trim(),
+        description: editForm.description.trim(),
+        category:    editForm.category,
+        location:    editForm.location.trim(),
+      });
       setIssue((prev) => ({ ...prev, ...res.data.issue }));
       setEditing(false);
     } catch (err) {
@@ -397,7 +413,8 @@ export function IssueDetailPage() {
   const statusLabel = getStatusLabel(issue.status);
   const imageUrl = issue.image_url || null;
   const isOwner = user && String(user.id) === String(issue.user_id);
-  const canManage = isAdmin || isOwner;
+  const canEdit   = isOwner || isStaff;
+  const canDelete = isAdmin || isOwner;
 
   return (
     <main className="issue-layout">
@@ -419,12 +436,12 @@ export function IssueDetailPage() {
                   setVoteCount(nextCount);
                 }}
               />
-              {canManage && !editing && (
+              {canEdit && !editing && (
                 <button type="button" className="issue-edit-btn" onClick={startEditing}>
                   แก้ไข
                 </button>
               )}
-              {canManage && !editing && (
+              {canDelete && !editing && (
                 <button
                   type="button"
                   className="issue-delete-btn"

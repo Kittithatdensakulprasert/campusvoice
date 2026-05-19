@@ -1,39 +1,38 @@
 const express = require('express');
-const router = express.Router();
-const mongoose = require('mongoose');
-const Issue = require('../models/Issue');
-const Vote = require('../models/Vote');
 const verifyToken = require('../middleware/verifyToken');
+const { VoteServiceError, createVoteService } = require('../services/voteService');
 
-// POST /api/votes/:issueId — toggle vote (add if not voted, remove if already voted)
-router.post('/:issueId', verifyToken, async (req, res) => {
-  const { issueId } = req.params;
-
-  if (!mongoose.isValidObjectId(issueId)) {
-    return res.status(400).json({ error: 'Invalid issue ID' });
+function handleVoteError(error, res) {
+  if (error instanceof VoteServiceError) {
+    return res.status(error.statusCode).json({ error: error.message });
   }
 
-  const userId = req.user.id;
+  console.error('Vote toggle error:', error);
+  return res.status(500).json({ error: 'Failed to process vote' });
+}
 
-  try {
-    const issue = await Issue.findById(issueId);
-    if (!issue) return res.status(404).json({ error: 'Issue not found' });
+const buildVoteRouter = ({
+  voteService = createVoteService(),
+  authMiddleware = verifyToken
+} = {}) => {
+  const router = express.Router();
 
-    const existing = await Vote.findOne({ user_id: userId, issue_id: issueId });
+  // POST /api/votes/:issueId — toggle vote (add if not voted, remove if already voted)
+  router.post('/:issueId', authMiddleware, async (req, res) => {
+    try {
+      const result = await voteService.toggleVote({
+        issueId: req.params.issueId,
+        userId: req.user.id
+      });
 
-    if (existing) {
-      await Vote.deleteOne({ _id: existing._id });
-      const voteCount = await Vote.countDocuments({ issue_id: issueId });
-      return res.json({ message: 'Vote removed', voteCount, voted: false });
+      return res.status(result.voted ? 201 : 200).json(result);
+    } catch (error) {
+      return handleVoteError(error, res);
     }
+  });
 
-    await Vote.create({ user_id: userId, issue_id: issueId });
-    const voteCount = await Vote.countDocuments({ issue_id: issueId });
-    res.status(201).json({ message: 'Voted successfully', voteCount, voted: true });
-  } catch (error) {
-    console.error('Vote toggle error:', error);
-    res.status(500).json({ error: 'Failed to process vote' });
-  }
-});
+  return router;
+};
 
-module.exports = router;
+module.exports = buildVoteRouter();
+module.exports.buildVoteRouter = buildVoteRouter;
