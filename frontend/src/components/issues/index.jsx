@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
@@ -363,10 +363,19 @@ export function IssueDetailPage() {
     e.preventDefault();
     setEditError('');
 
+    if (!editForm.title.trim()) {
+      setEditError('กรุณากรอกหัวข้อปัญหา');
+      return;
+    }
+    if (!editForm.description.trim()) {
+      setEditError('กรุณากรอกรายละเอียดปัญหา');
+      return;
+    }
+
     const hasChanges =
       editForm.title.trim() !== (issue.title || '') ||
       editForm.description.trim() !== (issue.description || '') ||
-      editForm.category !== (issue.category || '') ||
+      (editForm.category || '') !== (issue.category || '') ||
       editForm.location.trim() !== (issue.location || '');
     if (!hasChanges) {
       setEditError('ไม่มีข้อมูลที่ต้องการแก้ไข');
@@ -503,7 +512,7 @@ export function IssueDetailPage() {
               </div>
               {editError && <p className="issue-edit-error">{editError}</p>}
               <div className="issue-edit-actions">
-                <button type="button" className="issue-edit-cancel" onClick={() => setEditing(false)} disabled={saving}>
+                <button type="button" className="issue-edit-cancel" onClick={() => { setEditing(false); setEditError(''); }} disabled={saving}>
                   ยกเลิก
                 </button>
                 <button type="submit" className="issue-edit-save" disabled={saving}>
