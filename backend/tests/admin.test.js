@@ -212,3 +212,61 @@ test('admin PATCH /users/:id/role returns 500 when update fails', async (t) => {
   assert.equal(res.statusCode, 500);
   assert.deepEqual(res.body, { error: 'Failed to update user role' });
 });
+
+test('admin GET /stats returns aggregated payload with ordered statuses', async (t) => {
+  const handler = getFinalHandler('/stats', 'get');
+  const originalCount = Issue.countDocuments;
+  const originalAggregate = Issue.aggregate;
+
+  Issue.countDocuments = async () => 4;
+  Issue.aggregate = async (pipeline) => {
+    const hasCategoryProject = pipeline.some((step) => step.$project && step.$project.category);
+    if (hasCategoryProject) {
+      return [
+        { category: 'Network', count: 2 },
+        { category: 'Uncategorized', count: 1 }
+      ];
+    }
+
+    return [
+      { status: 'resolved', count: 1 },
+      { status: 'open', count: 2 },
+      { status: 'closed', count: 1 }
+    ];
+  };
+
+  t.after(() => {
+    Issue.countDocuments = originalCount;
+    Issue.aggregate = originalAggregate;
+  });
+
+  const res = createResponse();
+  await handler({ user: { id: 'staff-id', role: 'staff' } }, res);
+
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.body.totalIssues, 4);
+  assert.deepEqual(res.body.byStatus, [
+    { status: 'open', count: 2 },
+    { status: 'resolved', count: 1 },
+    { status: 'closed', count: 1 }
+  ]);
+});
+
+test('admin GET /stats returns 500 on aggregation failure', async (t) => {
+  const handler = getFinalHandler('/stats', 'get');
+  const originalCount = Issue.countDocuments;
+
+  Issue.countDocuments = async () => {
+    throw new Error('boom');
+  };
+
+  t.after(() => {
+    Issue.countDocuments = originalCount;
+  });
+
+  const res = createResponse();
+  await handler({ user: { id: 'admin-id', role: 'admin' } }, res);
+
+  assert.equal(res.statusCode, 500);
+  assert.deepEqual(res.body, { error: 'Failed to load dashboard stats' });
+});
