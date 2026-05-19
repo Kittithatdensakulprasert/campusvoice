@@ -76,3 +76,139 @@ test('admin GET /users returns 500 when query fails', async (t) => {
   assert.equal(res.statusCode, 500);
   assert.deepEqual(res.body, { error: 'Failed to load users' });
 });
+
+test('admin PATCH /users/:id/role validates id and role', async () => {
+  const handler = getFinalHandler('/users/:id/role', 'patch');
+
+  const invalidIdRes = createResponse();
+  await handler(
+    {
+      params: { id: 'bad-id' },
+      body: { role: 'admin' },
+      user: { id: 'admin-id', role: 'admin' }
+    },
+    invalidIdRes
+  );
+  assert.equal(invalidIdRes.statusCode, 400);
+  assert.deepEqual(invalidIdRes.body, { error: 'Invalid user id' });
+
+  const invalidRoleRes = createResponse();
+  await handler(
+    {
+      params: { id: '507f1f77bcf86cd799439011' },
+      body: { role: 'superadmin' },
+      user: { id: 'admin-id', role: 'admin' }
+    },
+    invalidRoleRes
+  );
+  assert.equal(invalidRoleRes.statusCode, 400);
+  assert.deepEqual(invalidRoleRes.body, { error: 'Role must be one of: user, staff, admin' });
+});
+
+test('admin PATCH /users/:id/role blocks self-role change', async () => {
+  const handler = getFinalHandler('/users/:id/role', 'patch');
+  const reqUserId = '507f1f77bcf86cd799439011';
+  const res = createResponse();
+
+  await handler(
+    {
+      params: { id: reqUserId },
+      body: { role: 'staff' },
+      user: { id: reqUserId, role: 'admin' }
+    },
+    res
+  );
+
+  assert.equal(res.statusCode, 400);
+  assert.deepEqual(res.body, { error: 'Cannot change your own role' });
+});
+
+test('admin PATCH /users/:id/role returns 404 when user not found', async (t) => {
+  const handler = getFinalHandler('/users/:id/role', 'patch');
+  const originalUpdate = User.findByIdAndUpdate;
+
+  User.findByIdAndUpdate = () => ({
+    select() { return this; },
+    async lean() {
+      return null;
+    }
+  });
+
+  t.after(() => {
+    User.findByIdAndUpdate = originalUpdate;
+  });
+
+  const res = createResponse();
+  await handler(
+    {
+      params: { id: '507f1f77bcf86cd799439011' },
+      body: { role: 'staff' },
+      user: { id: 'admin-id', role: 'admin' }
+    },
+    res
+  );
+
+  assert.equal(res.statusCode, 404);
+  assert.deepEqual(res.body, { error: 'User not found' });
+});
+
+test('admin PATCH /users/:id/role returns updated user payload', async (t) => {
+  const handler = getFinalHandler('/users/:id/role', 'patch');
+  const originalUpdate = User.findByIdAndUpdate;
+
+  User.findByIdAndUpdate = () => ({
+    select() { return this; },
+    async lean() {
+      return {
+        _id: '507f1f77bcf86cd799439011',
+        email: 'updated@example.com',
+        role: 'staff'
+      };
+    }
+  });
+
+  t.after(() => {
+    User.findByIdAndUpdate = originalUpdate;
+  });
+
+  const res = createResponse();
+  await handler(
+    {
+      params: { id: '507f1f77bcf86cd799439011' },
+      body: { role: 'staff' },
+      user: { id: 'admin-id', role: 'admin' }
+    },
+    res
+  );
+
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.body.message, 'Role updated');
+  assert.equal(res.body.user.id, '507f1f77bcf86cd799439011');
+  assert.equal(res.body.role, 'staff');
+});
+
+test('admin PATCH /users/:id/role returns 500 when update fails', async (t) => {
+  const handler = getFinalHandler('/users/:id/role', 'patch');
+  const originalUpdate = User.findByIdAndUpdate;
+
+  User.findByIdAndUpdate = () => {
+    throw new Error('boom');
+  };
+
+  t.after(() => {
+    User.findByIdAndUpdate = originalUpdate;
+  });
+
+  const res = createResponse();
+  await handler(
+    {
+      params: { id: '507f1f77bcf86cd799439011' },
+      body: { role: 'staff' },
+      user: { id: 'admin-id', role: 'admin' }
+    },
+    res
+  );
+
+  assert.equal(res.statusCode, 500);
+  assert.deepEqual(res.body, { error: 'Failed to update user role' });
+});
