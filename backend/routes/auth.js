@@ -79,26 +79,6 @@ const buildAuthRouter = ({
     }
   });
 
-  router.get('/test-tu-api', async (req, res) => {
-    try {
-      const { createTuApiService } = require('../services/tuApiService');
-      const tuApiService = createTuApiService();
-      
-      // Test with a simple request
-      const response = await tuApiService.authenticate('test', 'test');
-      
-      return res.status(200).json({
-        message: 'TU API connection test',
-        response: response
-      });
-    } catch (error) {
-      return res.status(500).json({
-        message: 'TU API test failed',
-        error: error.message
-      });
-    }
-  });
-
   router.get('/me', authMiddleware, async (req, res) => {
     try {
       const user = await authService.getCurrentUser(req.user?.id);
