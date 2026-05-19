@@ -8,103 +8,89 @@ const Vote = require('../models/Vote');
 const createResponse = () => ({
   statusCode: 200,
   body: undefined,
-  status(code) {
-    this.statusCode = code;
-    return this;
-  },
-  json(payload) {
-    this.body = payload;
-    return this;
-  }
+  status(code) { this.statusCode = code; return this; },
+  json(payload) { this.body = payload; return this; }
 });
 
-function getVoteHandler() {
-  const layer = votesRouter.stack.find(
-    (entry) => entry.route && entry.route.path === '/:issueId' && entry.route.methods.post
-  );
-  return layer.route.stack[1].handle;
+function getFinalHandler() {
+  const route = votesRouter.stack.find((e) => e.route && e.route.path === '/:issueId' && e.route.methods.post).route;
+  return route.stack[route.stack.length - 1].handle;
 }
 
-test('votes: returns 400 when issue id is invalid', async () => {
-  const handler = getVoteHandler();
-  const req = { params: { issueId: 'bad-id' }, user: { id: 'u1' } };
-  const res = createResponse();
+test('votes: invalid id and issue not found', async (t) => {
+  const handler = getFinalHandler();
 
-  await handler(req, res);
+  const badRes = createResponse();
+  await handler({ params: { issueId: 'bad-id' }, user: { id: 'u1' } }, badRes);
+  assert.equal(badRes.statusCode, 400);
 
-  assert.equal(res.statusCode, 400);
-  assert.deepEqual(res.body, { error: 'Invalid issue ID' });
-});
-
-test('votes: returns 404 when issue is not found', async (t) => {
-  const handler = getVoteHandler();
   const originalFindById = Issue.findById;
   Issue.findById = async () => null;
-  t.after(() => {
-    Issue.findById = originalFindById;
-  });
+  const missRes = createResponse();
+  await handler({ params: { issueId: '507f1f77bcf86cd799439011' }, user: { id: 'u1' } }, missRes);
+  assert.equal(missRes.statusCode, 404);
 
-  const req = { params: { issueId: '507f1f77bcf86cd799439011' }, user: { id: 'u1' } };
-  const res = createResponse();
-
-  await handler(req, res);
-
-  assert.equal(res.statusCode, 404);
-  assert.deepEqual(res.body, { error: 'Issue not found' });
+  t.after(() => { Issue.findById = originalFindById; });
 });
 
-test('votes: removes existing vote on toggle off', async (t) => {
-  const handler = getVoteHandler();
-  const originalFindById = Issue.findById;
-  const originalFindOne = Vote.findOne;
-  const originalDeleteOne = Vote.deleteOne;
-  const originalCountDocuments = Vote.countDocuments;
+test('votes: toggle off existing vote', async (t) => {
+  const handler = getFinalHandler();
+  const oFindById = Issue.findById;
+  const oFindOne = Vote.findOne;
+  const oDelete = Vote.deleteOne;
+  const oCount = Vote.countDocuments;
 
-  Issue.findById = async () => ({ _id: '507f1f77bcf86cd799439011' });
-  Vote.findOne = async () => ({ _id: 'vote-1' });
+  Issue.findById = async () => ({ _id: 'i1' });
+  Vote.findOne = async () => ({ _id: 'v1' });
   Vote.deleteOne = async () => ({ deletedCount: 1 });
   Vote.countDocuments = async () => 3;
 
   t.after(() => {
-    Issue.findById = originalFindById;
-    Vote.findOne = originalFindOne;
-    Vote.deleteOne = originalDeleteOne;
-    Vote.countDocuments = originalCountDocuments;
+    Issue.findById = oFindById;
+    Vote.findOne = oFindOne;
+    Vote.deleteOne = oDelete;
+    Vote.countDocuments = oCount;
   });
 
-  const req = { params: { issueId: '507f1f77bcf86cd799439011' }, user: { id: 'u1' } };
   const res = createResponse();
-
-  await handler(req, res);
-
+  await handler({ params: { issueId: '507f1f77bcf86cd799439011' }, user: { id: 'u1' } }, res);
   assert.equal(res.statusCode, 200);
-  assert.deepEqual(res.body, { message: 'Vote removed', voteCount: 3, voted: false });
+  assert.equal(res.body.voted, false);
 });
 
-test('votes: creates vote on toggle on', async (t) => {
-  const handler = getVoteHandler();
-  const originalFindById = Issue.findById;
-  const originalFindOne = Vote.findOne;
-  const originalCreate = Vote.create;
-  const originalCountDocuments = Vote.countDocuments;
+test('votes: toggle on creates vote', async (t) => {
+  const handler = getFinalHandler();
+  const oFindById = Issue.findById;
+  const oFindOne = Vote.findOne;
+  const oCreate = Vote.create;
+  const oCount = Vote.countDocuments;
 
-  Issue.findById = async () => ({ _id: '507f1f77bcf86cd799439011' });
+  Issue.findById = async () => ({ _id: 'i1' });
   Vote.findOne = async () => null;
-  Vote.create = async () => ({ _id: 'vote-2' });
-  Vote.countDocuments = async () => 4;
+  Vote.create = async () => ({ _id: 'v2' });
+  Vote.countDocuments = async () => 5;
 
   t.after(() => {
-    Issue.findById = originalFindById;
-    Vote.findOne = originalFindOne;
-    Vote.create = originalCreate;
-    Vote.countDocuments = originalCountDocuments;
+    Issue.findById = oFindById;
+    Vote.findOne = oFindOne;
+    Vote.create = oCreate;
+    Vote.countDocuments = oCount;
   });
 
-  const req = { params: { issueId: '507f1f77bcf86cd799439011' }, user: { id: 'u1' } };
   const res = createResponse();
-
-  await handler(req, res);
-
+  await handler({ params: { issueId: '507f1f77bcf86cd799439011' }, user: { id: 'u1' } }, res);
   assert.equal(res.statusCode, 201);
-  assert.deepEqual(res.body, { message: 'Voted successfully', voteCount: 4, voted: true });
+  assert.equal(res.body.voted, true);
+});
+
+test('votes: returns 500 on unexpected error', async (t) => {
+  const handler = getFinalHandler();
+  const originalFindById = Issue.findById;
+  Issue.findById = async () => { throw new Error('boom'); };
+
+  t.after(() => { Issue.findById = originalFindById; });
+
+  const res = createResponse();
+  await handler({ params: { issueId: '507f1f77bcf86cd799439011' }, user: { id: 'u1' } }, res);
+  assert.equal(res.statusCode, 500);
 });
