@@ -1,9 +1,6 @@
 const express = require('express');
-const router = express.Router();
 const verifyToken = require('../middleware/verifyToken');
 const { CommentServiceError, createCommentService } = require('../services/commentService');
-
-const commentService = createCommentService();
 
 function handleCommentError(error, res, logLabel) {
   if (error instanceof CommentServiceError) {
@@ -14,40 +11,50 @@ function handleCommentError(error, res, logLabel) {
   return res.status(500).json({ error: logLabel });
 }
 
-// GET /api/comments/:issueId
-router.get('/:issueId', async (req, res) => {
-  try {
-    res.json(await commentService.listComments(req.params.issueId));
-  } catch (error) {
-    handleCommentError(error, res, 'Failed to load comments');
-  }
-});
+const buildCommentRouter = ({
+  commentService = createCommentService(),
+  authMiddleware = verifyToken
+} = {}) => {
+  const router = express.Router();
 
-// POST /api/comments/:issueId
-router.post('/:issueId', verifyToken, async (req, res) => {
-  try {
-    const result = await commentService.createComment({
-      issueId: req.params.issueId,
-      userId: req.user.id,
-      body: req.body.body
-    });
+  // GET /api/comments/:issueId
+  router.get('/:issueId', async (req, res) => {
+    try {
+      return res.json(await commentService.listComments(req.params.issueId));
+    } catch (error) {
+      return handleCommentError(error, res, 'Failed to load comments');
+    }
+  });
 
-    res.status(201).json(result);
-  } catch (error) {
-    handleCommentError(error, res, 'Failed to add comment');
-  }
-});
+  // POST /api/comments/:issueId
+  router.post('/:issueId', authMiddleware, async (req, res) => {
+    try {
+      const result = await commentService.createComment({
+        issueId: req.params.issueId,
+        userId: req.user.id,
+        body: req.body.body
+      });
 
-// DELETE /api/comments/:id
-router.delete('/:id', verifyToken, async (req, res) => {
-  try {
-    res.json(await commentService.deleteComment({
-      id: req.params.id,
-      user: req.user
-    }));
-  } catch (error) {
-    handleCommentError(error, res, 'Failed to delete comment');
-  }
-});
+      return res.status(201).json(result);
+    } catch (error) {
+      return handleCommentError(error, res, 'Failed to add comment');
+    }
+  });
 
-module.exports = router;
+  // DELETE /api/comments/:id
+  router.delete('/:id', authMiddleware, async (req, res) => {
+    try {
+      return res.json(await commentService.deleteComment({
+        id: req.params.id,
+        user: req.user
+      }));
+    } catch (error) {
+      return handleCommentError(error, res, 'Failed to delete comment');
+    }
+  });
+
+  return router;
+};
+
+module.exports = buildCommentRouter();
+module.exports.buildCommentRouter = buildCommentRouter;

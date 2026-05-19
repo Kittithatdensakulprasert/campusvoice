@@ -28,12 +28,12 @@ const createVoteService = ({
     if (existing) {
       await voteRepository.deleteVoteById(existing._id);
       const voteCount = await voteRepository.countVotesByIssueId(issueId);
-      return { message: 'Vote removed', voteCount, voted: false, statusCode: 200 };
+      return { message: 'Vote removed', voteCount, voted: false };
     }
 
     await voteRepository.createVote(userId, issueId);
     const voteCount = await voteRepository.countVotesByIssueId(issueId);
-    return { message: 'Voted successfully', voteCount, voted: true, statusCode: 201 };
+    return { message: 'Voted successfully', voteCount, voted: true };
   }
 });
 

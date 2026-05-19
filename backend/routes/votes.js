@@ -1,9 +1,6 @@
 const express = require('express');
-const router = express.Router();
 const verifyToken = require('../middleware/verifyToken');
 const { VoteServiceError, createVoteService } = require('../services/voteService');
-
-const voteService = createVoteService();
 
 function handleVoteError(error, res) {
   if (error instanceof VoteServiceError) {
@@ -14,19 +11,28 @@ function handleVoteError(error, res) {
   return res.status(500).json({ error: 'Failed to process vote' });
 }
 
-// POST /api/votes/:issueId — toggle vote (add if not voted, remove if already voted)
-router.post('/:issueId', verifyToken, async (req, res) => {
-  try {
-    const result = await voteService.toggleVote({
-      issueId: req.params.issueId,
-      userId: req.user.id
-    });
+const buildVoteRouter = ({
+  voteService = createVoteService(),
+  authMiddleware = verifyToken
+} = {}) => {
+  const router = express.Router();
 
-    const { statusCode, ...body } = result;
-    res.status(statusCode).json(body);
-  } catch (error) {
-    handleVoteError(error, res);
-  }
-});
+  // POST /api/votes/:issueId — toggle vote (add if not voted, remove if already voted)
+  router.post('/:issueId', authMiddleware, async (req, res) => {
+    try {
+      const result = await voteService.toggleVote({
+        issueId: req.params.issueId,
+        userId: req.user.id
+      });
 
-module.exports = router;
+      return res.status(result.voted ? 201 : 200).json(result);
+    } catch (error) {
+      return handleVoteError(error, res);
+    }
+  });
+
+  return router;
+};
+
+module.exports = buildVoteRouter();
+module.exports.buildVoteRouter = buildVoteRouter;

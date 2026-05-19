@@ -1,4 +1,3 @@
-const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
 const { buildFilter, getPagination, getSortOption } = require('../lib/issueHelpers');
 const { createIssueRepository } = require('../repositories/issueRepository');
@@ -77,9 +76,7 @@ function validateIssueInput({ title, description, category, location }) {
 
 const createIssueService = ({
   issueRepository = createIssueRepository(),
-  voteRepository = createVoteRepository(),
-  jwtLib = jwt,
-  jwtSecret = process.env.JWT_SECRET
+  voteRepository = createVoteRepository()
 } = {}) => {
   async function formatIssues(issues) {
     const ids = issues.map(issue => issue._id);
@@ -137,7 +134,7 @@ const createIssueService = ({
       };
     },
 
-    async getIssueDetail(id, authorizationHeader) {
+    async getIssueDetail(id, currentUserId = null) {
       assertValidObjectId(id);
 
       const issue = await issueRepository.findIssueById(id);
@@ -148,13 +145,9 @@ const createIssueService = ({
       const [formatted] = await formatIssues([issue]);
       let voted = false;
 
-      if (authorizationHeader) {
-        try {
-          const token = authorizationHeader.split(' ')[1];
-          const decoded = jwtLib.verify(token, jwtSecret || process.env.JWT_SECRET);
-          const existing = await voteRepository.findByUserAndIssue(decoded.id, issue._id);
-          voted = !!existing;
-        } catch (_) {}
+      if (currentUserId) {
+        const existing = await voteRepository.findByUserAndIssue(currentUserId, issue._id);
+        voted = !!existing;
       }
 
       return { ...formatted, voted };
