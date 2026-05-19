@@ -62,6 +62,31 @@ router.patch('/users/:id/role', verifyToken, roleGuard(['admin']), async (req, r
   }
 });
 
+// DELETE /api/admin/users/:id - delete user account (admin only)
+router.delete('/users/:id', verifyToken, roleGuard(['admin']), async (req, res) => {
+  const { id } = req.params;
+  if (!mongoose.isValidObjectId(id)) {
+    return res.status(400).json({ error: 'Invalid user id' });
+  }
+
+  if (id === req.user.id) {
+    return res.status(400).json({ error: 'Cannot delete your own account from admin panel' });
+  }
+
+  try {
+    const user = await User.findByIdAndDelete(id)
+      .select(ADMIN_USER_FIELDS)
+      .lean();
+
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    res.json({ message: 'User deleted', user: serializeUser(user) });
+  } catch (error) {
+    console.error('Delete user error:', error);
+    res.status(500).json({ error: 'Failed to delete user' });
+  }
+});
+
 // GET /api/admin/stats
 router.get('/stats', verifyToken, roleGuard(['admin', 'staff']), async (req, res) => {
   try {
