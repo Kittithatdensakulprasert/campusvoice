@@ -151,7 +151,7 @@ const createIssueService = ({
       if (authorizationHeader) {
         try {
           const token = authorizationHeader.split(' ')[1];
-          const decoded = jwtLib.verify(token, jwtSecret);
+          const decoded = jwtLib.verify(token, jwtSecret || process.env.JWT_SECRET);
           const existing = await voteRepository.findByUserAndIssue(decoded.id, issue._id);
           voted = !!existing;
         } catch (_) {}
