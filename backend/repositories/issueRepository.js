@@ -36,7 +36,6 @@ const createIssueRepository = () => ({
     return formatted;
   },
 
-  // คืนค่า Mongoose Document (ไม่ใช่ lean) สำหรับเช็ค ownership และ deleteOne()
   async findDocumentById(id) {
     return Issue.findById(id);
   },
@@ -51,6 +50,15 @@ const createIssueRepository = () => ({
 
   async updateStatus(id, status) {
     return Issue.findByIdAndUpdate(id, { status }, { new: true });
+  },
+
+  async updateContent(id, updates) {
+    const issue = await Issue.findByIdAndUpdate(id, updates, { new: true })
+      .populate('user_id', 'name')
+      .lean();
+    if (!issue) return null;
+    const [formatted] = await formatIssues([issue]);
+    return formatted;
   },
 });
 

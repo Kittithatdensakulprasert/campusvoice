@@ -17,7 +17,7 @@ class IssueError extends Error {
 
 const createIssueService = ({
   issueRepository = createIssueRepository(),
-  voteRepository = createVoteRepository(),
+  voteRepository  = createVoteRepository(),
 } = {}) => ({
   async listIssues(query) {
     const category = (query.category || '').trim();
@@ -99,10 +99,11 @@ const createIssueService = ({
     const isOwner = issue.user_id.toString() === requestingUser.id;
     if (!isAdmin && !isOwner) throw new IssueError('ไม่มีสิทธิ์ลบ issue นี้', 403);
 
+    const imageUrl = issue.image_url;
     await issue.deleteOne();
 
-    if (issue.image_url) {
-      fs.unlink(path.join(__dirname, '..', issue.image_url), () => {});
+    if (imageUrl) {
+      fs.unlink(path.join(__dirname, '..', imageUrl), () => {});
     }
 
     return { message: 'Issue deleted', issueId };
