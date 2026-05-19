@@ -42,6 +42,18 @@ const buildAdminRouter = ({
     }
   });
 
+  // DELETE /api/admin/users/:id - delete user account (admin only)
+  router.delete('/users/:id', authMiddleware, adminGuard, async (req, res) => {
+    try {
+      return res.json(await adminService.deleteUser({
+        id: req.params.id,
+        currentUserId: req.user.id
+      }));
+    } catch (error) {
+      return handleAdminError(error, res, 'Failed to delete user');
+    }
+  });
+
   // GET /api/admin/stats
   router.get('/stats', authMiddleware, staffGuard, async (req, res) => {
     try {

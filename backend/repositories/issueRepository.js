@@ -32,6 +32,16 @@ const createIssueRepository = () => ({
 
   async updateIssueStatus(id, status) {
     return Issue.findByIdAndUpdate(id, { status }, { new: true });
+  },
+
+  async updateIssue(id, updates) {
+    return Issue.findByIdAndUpdate(
+      id,
+      updates,
+      { new: true }
+    )
+      .populate('user_id', 'name')
+      .lean();
   }
 });
 

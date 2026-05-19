@@ -47,6 +47,23 @@ const createAdminService = ({
     return { message: 'Role updated', userId: id, role, user: serializeUser(user) };
   },
 
+  async deleteUser({ id, currentUserId }) {
+    if (!mongoose.isValidObjectId(id)) {
+      throw new AdminServiceError('Invalid user id', 400);
+    }
+
+    if (id === currentUserId) {
+      throw new AdminServiceError('Cannot delete your own account from admin panel', 400);
+    }
+
+    const user = await adminRepository.deleteUser(id);
+    if (!user) {
+      throw new AdminServiceError('User not found', 404);
+    }
+
+    return { message: 'User deleted', user: serializeUser(user) };
+  },
+
   async getStats() {
     const [totalIssues, byCategory, byStatusRaw] = await Promise.all([
       adminRepository.countIssues(),

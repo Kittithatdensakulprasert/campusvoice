@@ -17,6 +17,12 @@ const createAdminRepository = () => ({
       .lean();
   },
 
+  async deleteUser(id) {
+    return User.findByIdAndDelete(id)
+      .select(ADMIN_USER_FIELDS)
+      .lean();
+  },
+
   async countIssues() {
     return Issue.countDocuments();
   },

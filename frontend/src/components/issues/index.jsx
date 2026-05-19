@@ -317,12 +317,15 @@ export function IssueListPage() {
 export function IssueDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, isStaff } = useAuth();
   const [issue, setIssue] = useState(null);
   const [loading, setLoading] = useState(true);
   const [voteCount, setVoteCount] = useState(0);
   const [hasVoted, setHasVoted] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [editForm, setEditForm] = useState({ title: '', description: '' });
 
   const fetchIssueDetail = useCallback(async () => {
     try {
@@ -330,6 +333,10 @@ export function IssueDetailPage() {
       const res = await api.get(`/issues/${id}`);
       const issueData = res.data;
       setIssue(issueData);
+      setEditForm({
+        title: issueData?.title || '',
+        description: issueData?.description || ''
+      });
       setVoteCount(getIssueVoteCount(issueData));
       setHasVoted(!!issueData.voted);
     } catch (err) {
@@ -368,6 +375,32 @@ export function IssueDetailPage() {
   const imageUrl = issue.image_url || null;
   const isOwner = user && String(user.id) === String(issue.user_id);
   const canDelete = isAdmin || isOwner;
+  const canEdit = isOwner || isStaff;
+
+  async function handleSaveIssue() {
+    const title = editForm.title.trim();
+    const description = editForm.description.trim();
+    if (!title || !description) {
+      window.alert('กรุณากรอกหัวข้อและรายละเอียดให้ครบ');
+      return;
+    }
+
+    try {
+      setSaving(true);
+      const { data } = await api.patch(`/issues/${id}`, {
+        title,
+        description,
+        category: issue.category || '',
+        location: issue.location || ''
+      });
+      setIssue((prev) => ({ ...prev, ...data.issue }));
+      setEditing(false);
+    } catch (err) {
+      window.alert(err.response?.data?.error || 'แก้ไข issue ไม่สำเร็จ');
+    } finally {
+      setSaving(false);
+    }
+  }
 
   return (
     <main className="issue-layout">
@@ -403,6 +436,35 @@ export function IssueDetailPage() {
           </div>
 
           <h1>{issue.title || UNTITLED_ISSUE}</h1>
+          {canEdit ? (
+            <div className="issue-detail-header-actions" style={{ marginBottom: '0.75rem' }}>
+              {!editing ? (
+                <button type="button" className="issue-delete-btn" onClick={() => setEditing(true)}>
+                  แก้ไข issue
+                </button>
+              ) : (
+                <>
+                  <button type="button" className="issue-delete-btn" onClick={handleSaveIssue} disabled={saving}>
+                    {saving ? 'กำลังบันทึก...' : 'บันทึก'}
+                  </button>
+                  <button
+                    type="button"
+                    className="issue-delete-btn"
+                    onClick={() => {
+                      setEditing(false);
+                      setEditForm({
+                        title: issue?.title || '',
+                        description: issue?.description || ''
+                      });
+                    }}
+                    disabled={saving}
+                  >
+                    ยกเลิก
+                  </button>
+                </>
+              )}
+            </div>
+          ) : null}
 
           <div className="issue-meta detail-meta">
             <span>หมวดหมู่: {issue.category || 'ไม่มีหมวดหมู่'}</span>
@@ -410,9 +472,30 @@ export function IssueDetailPage() {
             <span>วันที่: {formatIssueDate(issue.created_at)}</span>
           </div>
 
-          <p className="issue-detail-description">
-            {issue.description || EMPTY_VALUE}
-          </p>
+          {editing ? (
+            <div style={{ display: 'grid', gap: '0.75rem' }}>
+              <input
+                type="text"
+                value={editForm.title}
+                maxLength={100}
+                onChange={(event) => setEditForm((prev) => ({ ...prev, title: event.target.value }))}
+                className="issue-search-input"
+                placeholder="หัวข้อปัญหา"
+              />
+              <textarea
+                value={editForm.description}
+                maxLength={500}
+                onChange={(event) => setEditForm((prev) => ({ ...prev, description: event.target.value }))}
+                className="issue-search-input"
+                style={{ minHeight: 130, resize: 'vertical', paddingTop: '0.75rem' }}
+                placeholder="รายละเอียดปัญหา"
+              />
+            </div>
+          ) : (
+            <p className="issue-detail-description">
+              {issue.description || EMPTY_VALUE}
+            </p>
+          )}
 
           {imageUrl ? (
             <img

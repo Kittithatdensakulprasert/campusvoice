@@ -61,6 +61,38 @@ const createCommentService = ({
     };
   },
 
+  async updateComment({ id, user, body }) {
+    if (!mongoose.isValidObjectId(id)) {
+      throw new CommentServiceError('Invalid comment ID', 400);
+    }
+
+    const normalizedBody = String(body || '').trim();
+    if (!normalizedBody) {
+      throw new CommentServiceError('Comment body is required', 400);
+    }
+
+    if (normalizedBody.length > 1000) {
+      throw new CommentServiceError('Comment body must be 1000 characters or fewer', 400);
+    }
+
+    const comment = await commentRepository.findById(id);
+    if (!comment) {
+      throw new CommentServiceError('Comment not found', 404);
+    }
+
+    const isOwner = comment.user_id.toString() === user.id;
+    const isAdmin = user.role === 'admin';
+    if (!isOwner && !isAdmin) {
+      throw new CommentServiceError('Forbidden', 403);
+    }
+
+    const updated = await commentRepository.updateComment(id, normalizedBody);
+    return {
+      message: 'Comment updated',
+      comment: serializeComment(updated),
+    };
+  },
+
   async deleteComment({ id, user }) {
     if (!mongoose.isValidObjectId(id)) {
       throw new CommentServiceError('Invalid comment ID', 400);

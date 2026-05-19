@@ -41,6 +41,19 @@ const buildCommentRouter = ({
     }
   });
 
+  // PATCH /api/comments/:id
+  router.patch('/:id', authMiddleware, async (req, res) => {
+    try {
+      return res.json(await commentService.updateComment({
+        id: req.params.id,
+        user: req.user,
+        body: req.body?.body
+      }));
+    } catch (error) {
+      return handleCommentError(error, res, 'Failed to update comment');
+    }
+  });
+
   // DELETE /api/comments/:id
   router.delete('/:id', authMiddleware, async (req, res) => {
     try {

@@ -20,6 +20,16 @@ const createCommentRepository = () => ({
 
   async findById(id) {
     return Comment.findById(id);
+  },
+
+  async updateComment(id, body) {
+    return Comment.findByIdAndUpdate(
+      id,
+      { body },
+      { new: true }
+    )
+      .populate('user_id', 'name')
+      .lean();
   }
 });
 

@@ -111,6 +111,19 @@ const buildIssueRouter = ({
     }
   });
 
+  // PATCH /api/issues/:id
+  router.patch('/:id', authMiddleware, async (req, res) => {
+    try {
+      return res.json(await issueService.updateIssue({
+        id: req.params.id,
+        input: req.body,
+        user: req.user
+      }));
+    } catch (error) {
+      return handleIssueError(error, res, 'Failed to update issue');
+    }
+  });
+
   // DELETE /api/issues/:id — admin สามารถลบได้ทุก issue, user ลบได้เฉพาะของตัวเอง
   router.delete('/:id', authMiddleware, async (req, res) => {
     try {

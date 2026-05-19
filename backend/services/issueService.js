@@ -74,6 +74,49 @@ function validateIssueInput({ title, description, category, location }) {
   };
 }
 
+function validateIssueUpdateInput(input) {
+  const updates = {};
+  const normalizedTitle = input.title?.trim?.();
+  const normalizedDescription = input.description?.trim?.();
+
+  if (typeof normalizedTitle !== 'string' || !normalizedTitle) {
+    throw new IssueServiceError('กรุณากรอกหัวข้อปัญหา', 400);
+  }
+
+  if (normalizedTitle.length > 100) {
+    throw new IssueServiceError('หัวข้อปัญหาต้องไม่เกิน 100 ตัวอักษร', 400);
+  }
+
+  if (typeof normalizedDescription !== 'string' || !normalizedDescription) {
+    throw new IssueServiceError('กรุณากรอกรายละเอียดปัญหา', 400);
+  }
+
+  if (normalizedDescription.length > 500) {
+    throw new IssueServiceError('รายละเอียดต้องไม่เกิน 500 ตัวอักษร', 400);
+  }
+
+  updates.title = normalizedTitle;
+  updates.description = normalizedDescription;
+
+  if (Object.prototype.hasOwnProperty.call(input, 'category')) {
+    const category = (input.category || '').trim();
+    if (category && !VALID_CATEGORIES.includes(category)) {
+      throw new IssueServiceError('หมวดหมู่ไม่ถูกต้อง', 400);
+    }
+    updates.category = category || null;
+  }
+
+  if (Object.prototype.hasOwnProperty.call(input, 'location')) {
+    const location = (input.location || '').trim();
+    if (location.length > 200) {
+      throw new IssueServiceError('สถานที่ต้องไม่เกิน 200 ตัวอักษร', 400);
+    }
+    updates.location = location || null;
+  }
+
+  return updates;
+}
+
 const createIssueService = ({
   issueRepository = createIssueRepository(),
   voteRepository = createVoteRepository()
@@ -182,6 +225,26 @@ const createIssueService = ({
       }
 
       return { message: 'Status updated', issueId: issue._id, status };
+    },
+
+    async updateIssue({ id, input, user }) {
+      assertValidObjectId(id);
+      const updates = validateIssueUpdateInput(input || {});
+
+      const issue = await issueRepository.findIssueDocumentById(id);
+      if (!issue) {
+        throw new IssueServiceError('Issue not found', 404);
+      }
+
+      const isOwner = issue.user_id.toString() === user.id;
+      const isAdminOrStaff = ['admin', 'staff'].includes(user.role);
+      if (!isOwner && !isAdminOrStaff) {
+        throw new IssueServiceError('ไม่มีสิทธิ์แก้ไข issue นี้', 403);
+      }
+
+      const updated = await issueRepository.updateIssue(id, updates);
+      const [formatted] = await formatIssues([updated]);
+      return { message: 'Issue updated', issue: formatted };
     },
 
     async deleteIssue(id, user) {
