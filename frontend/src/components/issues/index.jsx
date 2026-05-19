@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
@@ -324,8 +324,9 @@ export function IssueDetailPage() {
   const [hasVoted, setHasVoted] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [editForm, setEditForm] = useState({ title: '', description: '', category: '', location: '' });
   const [saving, setSaving] = useState(false);
-  const [editForm, setEditForm] = useState({ title: '', description: '' });
+  const [editError, setEditError] = useState('');
 
   const fetchIssueDetail = useCallback(async () => {
     try {
@@ -333,10 +334,6 @@ export function IssueDetailPage() {
       const res = await api.get(`/issues/${id}`);
       const issueData = res.data;
       setIssue(issueData);
-      setEditForm({
-        title: issueData?.title || '',
-        description: issueData?.description || ''
-      });
       setVoteCount(getIssueVoteCount(issueData));
       setHasVoted(!!issueData.voted);
     } catch (err) {
@@ -350,6 +347,57 @@ export function IssueDetailPage() {
   useEffect(() => {
     fetchIssueDetail();
   }, [fetchIssueDetail]);
+
+  function startEditing() {
+    setEditForm({
+      title:       issue.title || '',
+      description: issue.description || '',
+      category:    issue.category || '',
+      location:    issue.location || '',
+    });
+    setEditError('');
+    setEditing(true);
+  }
+
+  async function handleSave(e) {
+    e.preventDefault();
+    setEditError('');
+
+    if (!editForm.title.trim()) {
+      setEditError('กรุณากรอกหัวข้อปัญหา');
+      return;
+    }
+    if (!editForm.description.trim()) {
+      setEditError('กรุณากรอกรายละเอียดปัญหา');
+      return;
+    }
+
+    const hasChanges =
+      editForm.title.trim() !== (issue.title || '') ||
+      editForm.description.trim() !== (issue.description || '') ||
+      (editForm.category || '') !== (issue.category || '') ||
+      editForm.location.trim() !== (issue.location || '');
+    if (!hasChanges) {
+      setEditError('ไม่มีข้อมูลที่ต้องการแก้ไข');
+      return;
+    }
+
+    try {
+      setSaving(true);
+      const res = await api.patch(`/issues/${id}`, {
+        title:       editForm.title.trim(),
+        description: editForm.description.trim(),
+        category:    editForm.category,
+        location:    editForm.location.trim(),
+      });
+      setIssue((prev) => ({ ...prev, ...res.data.issue }));
+      setEditing(false);
+    } catch (err) {
+      setEditError(err.response?.data?.error || 'บันทึกไม่สำเร็จ');
+    } finally {
+      setSaving(false);
+    }
+  }
 
   async function handleDelete() {
     if (!window.confirm(`ยืนยันการลบ "${issue?.title || 'issue นี้'}"?`)) return;
@@ -374,33 +422,8 @@ export function IssueDetailPage() {
   const statusLabel = getStatusLabel(issue.status);
   const imageUrl = issue.image_url || null;
   const isOwner = user && String(user.id) === String(issue.user_id);
+  const canEdit   = isOwner || isStaff;
   const canDelete = isAdmin || isOwner;
-  const canEdit = isOwner || isStaff;
-
-  async function handleSaveIssue() {
-    const title = editForm.title.trim();
-    const description = editForm.description.trim();
-    if (!title || !description) {
-      window.alert('กรุณากรอกหัวข้อและรายละเอียดให้ครบ');
-      return;
-    }
-
-    try {
-      setSaving(true);
-      const { data } = await api.patch(`/issues/${id}`, {
-        title,
-        description,
-        category: issue.category || '',
-        location: issue.location || ''
-      });
-      setIssue((prev) => ({ ...prev, ...data.issue }));
-      setEditing(false);
-    } catch (err) {
-      window.alert(err.response?.data?.error || 'แก้ไข issue ไม่สำเร็จ');
-    } finally {
-      setSaving(false);
-    }
-  }
 
   return (
     <main className="issue-layout">
@@ -422,7 +445,12 @@ export function IssueDetailPage() {
                   setVoteCount(nextCount);
                 }}
               />
-              {canDelete && (
+              {canEdit && !editing && (
+                <button type="button" className="issue-edit-btn" onClick={startEditing}>
+                  แก้ไข
+                </button>
+              )}
+              {canDelete && !editing && (
                 <button
                   type="button"
                   className="issue-delete-btn"
@@ -435,66 +463,75 @@ export function IssueDetailPage() {
             </div>
           </div>
 
-          <h1>{issue.title || UNTITLED_ISSUE}</h1>
-          {canEdit ? (
-            <div className="issue-detail-header-actions" style={{ marginBottom: '0.75rem' }}>
-              {!editing ? (
-                <button type="button" className="issue-delete-btn" onClick={() => setEditing(true)}>
-                  แก้ไข issue
-                </button>
-              ) : (
-                <>
-                  <button type="button" className="issue-delete-btn" onClick={handleSaveIssue} disabled={saving}>
-                    {saving ? 'กำลังบันทึก...' : 'บันทึก'}
-                  </button>
-                  <button
-                    type="button"
-                    className="issue-delete-btn"
-                    onClick={() => {
-                      setEditing(false);
-                      setEditForm({
-                        title: issue?.title || '',
-                        description: issue?.description || ''
-                      });
-                    }}
-                    disabled={saving}
-                  >
-                    ยกเลิก
-                  </button>
-                </>
-              )}
-            </div>
-          ) : null}
-
-          <div className="issue-meta detail-meta">
-            <span>หมวดหมู่: {issue.category || 'ไม่มีหมวดหมู่'}</span>
-            <span>สถานที่: {issue.location || EMPTY_VALUE}</span>
-            <span>วันที่: {formatIssueDate(issue.created_at)}</span>
-          </div>
-
           {editing ? (
-            <div style={{ display: 'grid', gap: '0.75rem' }}>
-              <input
-                type="text"
-                value={editForm.title}
-                maxLength={100}
-                onChange={(event) => setEditForm((prev) => ({ ...prev, title: event.target.value }))}
-                className="issue-search-input"
-                placeholder="หัวข้อปัญหา"
-              />
-              <textarea
-                value={editForm.description}
-                maxLength={500}
-                onChange={(event) => setEditForm((prev) => ({ ...prev, description: event.target.value }))}
-                className="issue-search-input"
-                style={{ minHeight: 130, resize: 'vertical', paddingTop: '0.75rem' }}
-                placeholder="รายละเอียดปัญหา"
-              />
-            </div>
+            <form className="issue-edit-form" onSubmit={handleSave}>
+              <div className="issue-edit-field">
+                <label htmlFor="edit-title">หัวข้อปัญหา</label>
+                <input
+                  id="edit-title"
+                  type="text"
+                  maxLength={100}
+                  value={editForm.title}
+                  onChange={(e) => setEditForm((f) => ({ ...f, title: e.target.value }))}
+                />
+              </div>
+              <div className="issue-edit-field">
+                <label htmlFor="edit-description">รายละเอียด</label>
+                <textarea
+                  id="edit-description"
+                  rows={5}
+                  maxLength={500}
+                  value={editForm.description}
+                  onChange={(e) => setEditForm((f) => ({ ...f, description: e.target.value }))}
+                />
+              </div>
+              <div className="issue-edit-row">
+                <div className="issue-edit-field">
+                  <label htmlFor="edit-category">หมวดหมู่</label>
+                  <select
+                    id="edit-category"
+                    value={editForm.category}
+                    onChange={(e) => setEditForm((f) => ({ ...f, category: e.target.value }))}
+                  >
+                    <option value="">-- ไม่ระบุ --</option>
+                    {ISSUE_CATEGORIES.map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="issue-edit-field">
+                  <label htmlFor="edit-location">สถานที่</label>
+                  <input
+                    id="edit-location"
+                    type="text"
+                    maxLength={200}
+                    value={editForm.location}
+                    onChange={(e) => setEditForm((f) => ({ ...f, location: e.target.value }))}
+                  />
+                </div>
+              </div>
+              {editError && <p className="issue-edit-error">{editError}</p>}
+              <div className="issue-edit-actions">
+                <button type="button" className="issue-edit-cancel" onClick={() => { setEditing(false); setEditError(''); }} disabled={saving}>
+                  ยกเลิก
+                </button>
+                <button type="submit" className="issue-edit-save" disabled={saving}>
+                  {saving ? 'กำลังบันทึก...' : 'บันทึก'}
+                </button>
+              </div>
+            </form>
           ) : (
-            <p className="issue-detail-description">
-              {issue.description || EMPTY_VALUE}
-            </p>
+            <>
+              <h1>{issue.title || UNTITLED_ISSUE}</h1>
+              <div className="issue-meta detail-meta">
+                <span>หมวดหมู่: {issue.category || 'ไม่มีหมวดหมู่'}</span>
+                <span>สถานที่: {issue.location || EMPTY_VALUE}</span>
+                <span>วันที่: {formatIssueDate(issue.created_at)}</span>
+              </div>
+              <p className="issue-detail-description">
+                {issue.description || EMPTY_VALUE}
+              </p>
+            </>
           )}
 
           {imageUrl ? (

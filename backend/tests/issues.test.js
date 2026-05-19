@@ -347,6 +347,15 @@ test('issues PATCH /:id validates, updates, and enforces permission', async (t) 
   const oFindByIdAndUpdate = Issue.findByIdAndUpdate;
   const oAggregate = Vote.aggregate;
 
+  Issue.findById = async () => null;
+  const notFoundRes = createResponse();
+  await handler({
+    params: { id: '507f1f77bcf86cd799439011' },
+    body: { title: 'New title', description: 'New desc' },
+    user: { id: 'u1', role: 'user' }
+  }, notFoundRes);
+  assert.equal(notFoundRes.statusCode, 404);
+
   Issue.findById = async () => ({ user_id: { toString: () => 'owner-id' } });
   const forbRes = createResponse();
   await handler({
