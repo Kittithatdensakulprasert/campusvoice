@@ -397,8 +397,7 @@ export function IssueDetailPage() {
   const statusLabel = getStatusLabel(issue.status);
   const imageUrl = issue.image_url || null;
   const isOwner = user && String(user.id) === String(issue.user_id);
-  const canEdit = isAdmin || isOwner;
-  const canDelete = isAdmin || isOwner;
+  const canManage = isAdmin || isOwner;
 
   return (
     <main className="issue-layout">
@@ -420,12 +419,12 @@ export function IssueDetailPage() {
                   setVoteCount(nextCount);
                 }}
               />
-              {canEdit && !editing && (
+              {canManage && !editing && (
                 <button type="button" className="issue-edit-btn" onClick={startEditing}>
                   แก้ไข
                 </button>
               )}
-              {canDelete && !editing && (
+              {canManage && !editing && (
                 <button
                   type="button"
                   className="issue-delete-btn"

@@ -186,7 +186,6 @@ router.patch('/:id/status', verifyToken, roleGuard(['admin', 'staff']), async (r
   }
 });
 
-// DELETE /api/issues/:id — admin สามารถลบได้ทุก issue, user ลบได้เฉพาะของตัวเอง
 // PATCH /api/issues/:id — แก้ไขเนื้อหา issue (เจ้าของหรือ admin)
 router.patch('/:id', verifyToken, async (req, res) => {
   if (!mongoose.isValidObjectId(req.params.id)) {
@@ -204,39 +203,42 @@ router.patch('/:id', verifyToken, async (req, res) => {
     }
 
     const { title, description, category, location } = req.body;
-    const updates = {};
 
     if (title !== undefined) {
       if (!title.trim()) return res.status(400).json({ error: 'กรุณากรอกหัวข้อปัญหา' });
       if (title.trim().length > 100) return res.status(400).json({ error: 'หัวข้อปัญหาต้องไม่เกิน 100 ตัวอักษร' });
-      updates.title = title.trim();
+      issue.title = title.trim();
     }
     if (description !== undefined) {
       if (!description.trim()) return res.status(400).json({ error: 'กรุณากรอกรายละเอียดปัญหา' });
       if (description.trim().length > 500) return res.status(400).json({ error: 'รายละเอียดต้องไม่เกิน 500 ตัวอักษร' });
-      updates.description = description.trim();
+      issue.description = description.trim();
     }
     if (category !== undefined) {
       if (category && !VALID_CATEGORIES.includes(category)) return res.status(400).json({ error: 'หมวดหมู่ไม่ถูกต้อง' });
-      updates.category = category || null;
+      issue.category = category || null;
     }
     if (location !== undefined) {
       if (location && location.trim().length > 200) return res.status(400).json({ error: 'สถานที่ต้องไม่เกิน 200 ตัวอักษร' });
-      updates.location = location?.trim() || null;
+      issue.location = location?.trim() || null;
     }
 
-    const updated = await Issue.findByIdAndUpdate(req.params.id, updates, { new: true });
+    if (!issue.isModified()) {
+      return res.status(400).json({ error: 'ไม่มีข้อมูลที่ต้องการแก้ไข' });
+    }
+
+    await issue.save();
 
     res.json({
       message: 'Issue updated',
       issue: {
-        id:          updated._id,
-        title:       updated.title,
-        description: updated.description,
-        category:    updated.category,
-        location:    updated.location,
-        status:      updated.status,
-        updated_at:  updated.updated_at,
+        id:          issue._id,
+        title:       issue.title,
+        description: issue.description,
+        category:    issue.category,
+        location:    issue.location,
+        status:      issue.status,
+        updated_at:  issue.updated_at,
       },
     });
   } catch (error) {
