@@ -36,7 +36,7 @@ function formatDate(value) {
   });
 }
 
-function UserManagementTable({ users, currentUserId, updatingUserId, onRoleChange }) {
+function UserManagementTable({ users, currentUserId, updatingUserId, onRoleChange, onDeleteUser }) {
   if (!users.length) {
     return <p className="admin-empty-state">ยังไม่มีข้อมูลผู้ใช้</p>;
   }
@@ -79,19 +79,29 @@ function UserManagementTable({ users, currentUserId, updatingUserId, onRoleChang
                 </td>
                 <td>{formatDate(item.created_at || item.createdAt)}</td>
                 <td>
-                  <select
-                    className="admin-role-select"
-                    value={item.role || 'user'}
-                    disabled={isUpdating || isCurrentUser}
-                    title={isCurrentUser ? 'ไม่ควรเปลี่ยน role ของบัญชีตัวเองจากหน้านี้' : 'เปลี่ยน role ผู้ใช้'}
-                    onChange={(event) => onRoleChange(item, event.target.value)}
-                  >
-                    {ROLE_OPTIONS.map((role) => (
-                      <option key={role.value} value={role.value}>
-                        {role.label}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="admin-user-actions">
+                    <select
+                      className="admin-role-select"
+                      value={item.role || 'user'}
+                      disabled={isUpdating || isCurrentUser}
+                      title={isCurrentUser ? 'ไม่ควรเปลี่ยน role ของบัญชีตัวเองจากหน้านี้' : 'เปลี่ยน role ผู้ใช้'}
+                      onChange={(event) => onRoleChange(item, event.target.value)}
+                    >
+                      {ROLE_OPTIONS.map((role) => (
+                        <option key={role.value} value={role.value}>
+                          {role.label}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      className="admin-user-delete-btn"
+                      disabled={isUpdating || isCurrentUser}
+                      onClick={() => onDeleteUser(item)}
+                    >
+                      ลบ
+                    </button>
+                  </div>
                 </td>
               </tr>
             );
@@ -205,6 +215,21 @@ export default function AdminPage() {
     }
   };
 
+  const handleDeleteUser = async (targetUser) => {
+    const ok = window.confirm(`ยืนยันการลบผู้ใช้ ${targetUser.email || targetUser.name || targetUser.id} ใช่ไหม?`);
+    if (!ok) return;
+
+    try {
+      setUpdatingUserId(targetUser.id);
+      await api.delete(`/admin/users/${targetUser.id}`);
+      setUsers((prev) => prev.filter((item) => item.id !== targetUser.id));
+    } catch (err) {
+      window.alert(err.response?.data?.error || 'ลบผู้ใช้ไม่สำเร็จ');
+    } finally {
+      setUpdatingUserId(null);
+    }
+  };
+
   const userStats = useMemo(() => {
     return ROLE_OPTIONS.map((role) => ({
       ...role,
@@ -298,6 +323,7 @@ export default function AdminPage() {
               currentUserId={user.id}
               updatingUserId={updatingUserId}
               onRoleChange={handleChangeRole}
+              onDeleteUser={handleDeleteUser}
             />
           ) : null}
         </section>

@@ -3,7 +3,13 @@ import StatusDropdown from './StatusDropdown';
 
 export default function IssueTable({ issues, updatingId, onChangeStatus, onDeleteIssue }) {
   if (!issues.length) {
-    return <p>ยังไม่มีข้อมูลปัญหา</p>;
+    return (
+      <div style={emptyState}>
+        <div style={emptyIcon}>📋</div>
+        <p style={emptyTitle}>ยังไม่มีข้อมูลปัญหา</p>
+        <p style={emptySubtitle}>ไม่พบปัญหาที่ตรงกับเงื่อนไขที่เลือก</p>
+      </div>
+    );
   }
 
   return (
@@ -63,6 +69,35 @@ const td = {
   borderBottom: '1px solid #f0f0f0',
   padding: '10px 12px',
   verticalAlign: 'middle'
+};
+
+const emptyState = {
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: '60px 24px',
+  gap: '8px',
+  color: '#9ca3af',
+};
+
+const emptyIcon = {
+  fontSize: '48px',
+  marginBottom: '8px',
+  opacity: 0.5,
+};
+
+const emptyTitle = {
+  margin: 0,
+  fontSize: '16px',
+  fontWeight: 600,
+  color: '#6b7280',
+};
+
+const emptySubtitle = {
+  margin: 0,
+  fontSize: '13px',
+  color: '#9ca3af',
 };
 
 const deleteBtn = {
